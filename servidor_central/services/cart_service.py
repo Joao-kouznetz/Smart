@@ -81,10 +81,10 @@ def ensure_cart_exists(cart_id: str) -> None:
         now = utc_now_iso()
         connection.execute(
             """
-            INSERT INTO carts (id, status, created_at, updated_at)
-            VALUES (?, ?, ?, ?)
+            INSERT INTO carts (id, created_at, updated_at)
+            VALUES (?, ?, ?)
             """,
-            (cart_id, "active", now, now),
+            (cart_id, now, now),
         )
 
 
@@ -130,33 +130,61 @@ def add_cart_item(cart_id: str, barcode: str, quantity: int) -> CartResponse:
     now = utc_now_iso()
 
     with get_connection() as connection:
-        connection.execute(
+        existing_item = connection.execute(
             """
-            INSERT INTO cart_items (
-                cart_id,
-                barcode,
-                quantity,
-                name,
-                price,
-                category,
-                aisle,
-                created_at,
-                updated_at
-            )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            SELECT id, quantity
+            FROM cart_items
+            WHERE cart_id = ? AND barcode = ?
             """,
-            (
-                cart_id,
-                product.barcode,
-                quantity,
-                product.name,
-                product.price,
-                product.category,
-                product.aisle,
-                now,
-                now,
-            ),
-        )
+            (cart_id, product.barcode),
+        ).fetchone()
+
+        if existing_item:
+            updated_quantity = int(existing_item["quantity"]) + quantity
+            connection.execute(
+                """
+                UPDATE cart_items
+                SET quantity = ?, name = ?, price = ?, category = ?, aisle = ?, updated_at = ?
+                WHERE id = ?
+                """,
+                (
+                    updated_quantity,
+                    product.name,
+                    product.price,
+                    product.category,
+                    product.aisle,
+                    now,
+                    int(existing_item["id"]),
+                ),
+            )
+        else:
+            connection.execute(
+                """
+                INSERT INTO cart_items (
+                    cart_id,
+                    barcode,
+                    quantity,
+                    name,
+                    price,
+                    category,
+                    aisle,
+                    created_at,
+                    updated_at
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    cart_id,
+                    product.barcode,
+                    quantity,
+                    product.name,
+                    product.price,
+                    product.category,
+                    product.aisle,
+                    now,
+                    now,
+                ),
+            )
         _touch_cart(connection, cart_id)
         _record_interaction(
             connection,
@@ -204,3 +232,20 @@ def get_cart_location_promotions(cart_id: str) -> LocationPromotionsResponse:
     cart = get_cart(cart_id)
     location_result = infer_location(cart)
     return find_location_promotions(cart, location_result)
+
+
+def checkout_cart(cart_id: str) -> CartResponse:
+    ensure_cart_exists(cart_id)
+
+    with get_connection() as connection:
+        connection.execute(
+            """
+            DELETE FROM cart_items
+            WHERE cart_id = ?
+            """,
+            (cart_id,),
+        )
+        _touch_cart(connection, cart_id)
+        _record_interaction(connection, cart_id, "checkout")
+
+    return get_cart(cart_id)

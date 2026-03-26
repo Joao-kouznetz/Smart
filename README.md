@@ -46,6 +46,11 @@ sh scripts/dev_servidor_central.sh
 - `SMART_CART_DB_PATH`: caminho opcional do arquivo SQLite do `servidor_central`.
 - `BASE_SUPERMARKET_API_URL`: URL base da API externa consumida pelo `servidor_central`.
 
+## Checkout
+
+- `POST /cart/{cart_id}/checkout`: finaliza a compra limpando todos os itens do carrinho.
+- A tabela `carts` nao usa mais campo `status`.
+
 ## Testes
 
 ```bash

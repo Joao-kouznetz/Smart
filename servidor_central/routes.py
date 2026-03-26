@@ -70,6 +70,11 @@ def get_cart(cart_id: str) -> CartResponse:
     return cart_service.get_cart(cart_id)
 
 
+@router.post("/cart/{cart_id}/checkout", response_model=CartResponse)
+def checkout_cart(cart_id: str) -> CartResponse:
+    return cart_service.checkout_cart(cart_id)
+
+
 @router.delete("/cart/{cart_id}/items/{item_id}", response_model=CartResponse)
 def delete_cart_item(cart_id: str, item_id: int) -> CartResponse:
     try:

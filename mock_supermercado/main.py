@@ -1,6 +1,11 @@
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, HTTPException, Query, status
 
-from mock_supermercado.data import PRODUCT_TEMPLATE, PROMOTIONS
+from mock_supermercado.catalog_service import (
+    ProductNotFoundError,
+    get_product_by_barcode,
+    search_products as search_products_in_catalog,
+)
+from mock_supermercado.data import PROMOTIONS
 
 
 def create_app() -> FastAPI:
@@ -16,32 +21,14 @@ def create_app() -> FastAPI:
 
     @app.get("/products/search")
     def search_products(query: str = Query(..., min_length=1)) -> list[dict[str, str | float]]:
-        return [
-            {
-                "barcode": f"search-{query}-1",
-                "name": f"{PRODUCT_TEMPLATE['name']} 1",
-                "price": PRODUCT_TEMPLATE["price"],
-                "category": PRODUCT_TEMPLATE["category"],
-                "aisle": PRODUCT_TEMPLATE["aisle"],
-            },
-            {
-                "barcode": f"search-{query}-2",
-                "name": f"{PRODUCT_TEMPLATE['name']} 2",
-                "price": PRODUCT_TEMPLATE["price"] + 3,
-                "category": PRODUCT_TEMPLATE["category"],
-                "aisle": "B2",
-            },
-        ]
+        return search_products_in_catalog(query)
 
     @app.get("/products/{barcode}")
     def get_product(barcode: str) -> dict[str, str | float]:
-        return {
-            "barcode": barcode,
-            "name": PRODUCT_TEMPLATE["name"],
-            "price": PRODUCT_TEMPLATE["price"],
-            "category": PRODUCT_TEMPLATE["category"],
-            "aisle": PRODUCT_TEMPLATE["aisle"],
-        }
+        try:
+            return get_product_by_barcode(barcode)
+        except ProductNotFoundError as exc:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
 
     @app.get("/promotions")
     def get_promotions() -> list[dict[str, str | float | None]]:
