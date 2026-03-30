@@ -277,19 +277,17 @@ def test_algorithm_endpoints_return_placeholder_payloads(client):
     location_promotions_response = client.get("/cart/cart-4/promotions/location")
 
     assert recommendations_response.status_code == 200
-    assert recommendations_response.json() == {
-        "cart_id": "cart-4",
-        "algorithm_status": "not_implemented",
-        "recommendations": [],
-    }
+    recommendations_payload = recommendations_response.json()
+    assert recommendations_payload["cart_id"] == "cart-4"
+    assert recommendations_payload["algorithm_status"] == "not_implemented"
+    assert len(recommendations_payload["recommendations"]) == 2
 
     assert location_promotions_response.status_code == 200
-    assert location_promotions_response.json() == {
-        "cart_id": "cart-4",
-        "algorithm_status": "not_implemented",
-        "inferred_location": None,
-        "promotions": [],
-    }
+    location_payload = location_promotions_response.json()
+    assert location_payload["cart_id"] == "cart-4"
+    assert location_payload["algorithm_status"] == "not_implemented"
+    assert location_payload["inferred_location"] == "Corredor sugerido"
+    assert len(location_payload["promotions"]) == 2
 
 
 def test_servidor_central_uses_mocked_http_request_for_catalog(client, mock_supermarket_request):
@@ -400,3 +398,26 @@ def test_post_cart_item_repairs_corrupted_foreign_key_schema(
     assert payload["cart_id"] == "1"
     assert payload["items"][0]["barcode"] == "7891000100103"
     assert payload["items"][0]["quantity"] == 1
+
+
+def test_backend_serves_frontend_build_in_app_route(tmp_path: Path, monkeypatch):
+    dist_path = tmp_path / "frontend-dist"
+    assets_path = dist_path / "assets"
+    assets_path.mkdir(parents=True)
+    (dist_path / "index.html").write_text("<html><body><div id='root'>Smart Cart Front</div></body></html>")
+    (assets_path / "app.js").write_text("console.log('smart-cart');")
+
+    monkeypatch.setenv("FRONTEND_DIST_PATH", str(dist_path))
+
+    app = create_app()
+    with TestClient(app) as test_client:
+        app_response = test_client.get("/app")
+        nested_response = test_client.get("/app/cart/view")
+        asset_response = test_client.get("/app/assets/app.js")
+
+    assert app_response.status_code == 200
+    assert "Smart Cart Front" in app_response.text
+    assert nested_response.status_code == 200
+    assert "Smart Cart Front" in nested_response.text
+    assert asset_response.status_code == 200
+    assert "smart-cart" in asset_response.text
