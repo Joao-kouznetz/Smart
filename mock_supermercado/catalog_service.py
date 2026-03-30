@@ -1,7 +1,8 @@
 import csv
 from pathlib import Path
+from typing import Any
 
-from mock_supermercado.data import CATALOG_CSV_PATH
+from mock_supermercado.data import CATALOG_CSV_PATH, PROMOTIONS_CSV_PATH
 
 
 class ProductNotFoundError(Exception):
@@ -25,6 +26,30 @@ def _read_catalog(csv_path: Path | None = None) -> list[dict[str, str | float]]:
                 }
             )
     return products
+
+
+def read_promotions(csv_path: Path | None = None) -> list[dict[str, Any]]:
+    promotions_path = csv_path or PROMOTIONS_CSV_PATH
+    
+    if not promotions_path.exists():
+        return []
+
+    with promotions_path.open(mode="r", encoding="utf-8", newline="") as f:
+        reader = csv.DictReader(f)
+        promotions = []
+        for row in reader:
+            promotions.append(
+                {
+                    "id": row["id"],
+                    "title": row["title"],
+                    "description": row["description"],
+                    "product_barcode": row["product_barcode"] or None,
+                    "discount_type": row["discount_type"],
+                    "discount_value": float(row["discount_value"]) if row["discount_value"] else None,
+                    "aisle": row["aisle"] or None,
+                }
+            )
+    return promotions
 
 
 def get_product_by_barcode(barcode: str, csv_path: Path | None = None) -> dict[str, str | float]:

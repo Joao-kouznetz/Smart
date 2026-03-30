@@ -1,6 +1,151 @@
 barcode,name,price,category,aisle
-7891000100101,Arroz Integral 1kg,24.90,Mercearia,C1
-7891000100102,Feijao Preto 1kg,9.50,Mercearia,C2
-7891000100103,Leite Integral 1L,5.99,Laticinios,A1
-7891000100104,Cafe Torrado 500g,18.75,Bebidas,B2
-7891000100105,Macarrao Espaguete 500g,7.20,Mercearia,D4
+7891000100000,Açúcar Eco 2L,49.44,Mercearia,E2
+7891000100001,Frango Inteiro Premium 500ml,70.9,Carnes,E2
+7891000100002,Fio Dental Nacional 500g,66.48,Higiene,D1
+7891000100003,Cerveja Fazenda 2L,81.87,Bebidas,C1
+7891000100004,Batata Fazenda 500g,25.32,Hortifruti,D2
+7891000100005,Milho Fazenda 2kg,64.76,Mercearia,A2
+7891000100006,Shampoo Nacional 2kg,78.43,Higiene,D2
+7891000100007,Leite Saboroso Unidade,66.07,Laticínios,E1
+7891000100008,Presunto Bio 1kg,9.57,Carnes,A1
+7891000100009,Torrada Bom Preço 2kg,11.88,Padaria,B2
+7891000100010,Picanha Eco Pacote,18.22,Carnes,F2
+7891000100011,Sabão em Pó Nacional 2L,74.9,Limpeza,D1
+7891000100012,Tomate Fazenda 2kg,48.89,Hortifruti,B2
+7891000100013,Detergente Eco 1L,56.6,Limpeza,B2
+7891000100014,Pão Francês Bom Preço 500ml,23.52,Padaria,A2
+7891000100015,Amaciante Bio 2kg,80.79,Limpeza,D1
+7891000100016,Batata Bio Pacote,35.31,Hortifruti,E1
+7891000100017,Óleo Bom Preço 500ml,42.68,Mercearia,B1
+7891000100018,Linguiça Nacional 500ml,90.37,Carnes,E2
+7891000100019,Desodorante Fazenda Pacote,18.42,Higiene,A2
+7891000100020,Pão de Forma Bom Preço 1L,92.34,Padaria,F1
+7891000100021,Manteiga Saboroso 2kg,2.64,Laticínios,D2
+7891000100022,Manteiga Fazenda 1L,8.46,Laticínios,A1
+7891000100023,Presunto Fazenda 500ml,20.45,Carnes,F2
+7891000100024,Desodorante Eco 1L,14.57,Higiene,D2
+7891000100025,Esponja de Aço Qualidade 1kg,40.8,Limpeza,C1
+7891000100026,Água Mineral Saboroso 500g,3.5,Bebidas,C2
+7891000100027,Torrada Bom Preço 2L,57.87,Padaria,E2
+7891000100028,Leite Condensado Bom Preço 1kg,77.08,Laticínios,C2
+7891000100029,Salsicha Eco 500g,59.16,Carnes,C2
+7891000100030,Cenoura Saboroso Pacote,32.04,Hortifruti,B2
+7891000100031,Pão Francês Premium 2kg,48.29,Padaria,D2
+7891000100032,Salsicha Qualidade Pacote,75.77,Carnes,D1
+7891000100033,Óleo Bom Preço 2L,5.5,Mercearia,F2
+7891000100034,Shampoo Nacional 500ml,33.68,Higiene,E1
+7891000100035,Desinfetante Bom Preço 1kg,36.34,Limpeza,F1
+7891000100036,Leite Condensado Bom Preço 2kg,88.66,Laticínios,D1
+7891000100037,Farinha Nacional 1kg,43.11,Mercearia,B1
+7891000100038,Batata Bio 500g,80.31,Hortifruti,E1
+7891000100039,Macarrão Bom Preço Pacote,34.47,Mercearia,B1
+7891000100040,Amaciante Nacional Unidade,17.61,Limpeza,F2
+7891000100041,Vinho Tinto Nacional 2L,17.69,Bebidas,E1
+7891000100042,Tomate Fazenda Pacote,13.89,Hortifruti,E1
+7891000100043,Biscoito Recheado Premium Unidade,58.03,Padaria,A1
+7891000100044,Manteiga Saboroso 1L,76.64,Laticínios,E1
+7891000100045,Esponja de Aço Qualidade 2kg,51.26,Limpeza,B1
+7891000100046,Sabão em Pó Saboroso 1kg,34.14,Limpeza,C1
+7891000100047,Creme de Leite Nacional Unidade,51.66,Laticínios,C1
+7891000100048,Sabonete Saboroso 1L,74.51,Higiene,C2
+7891000100049,Sabão em Pó Eco Unidade,14.08,Limpeza,D2
+7891000100050,Feijão Bom Preço 1L,87.83,Mercearia,F2
+7891000100051,Acém Bom Preço 1L,7.96,Carnes,D1
+7891000100052,Açúcar Saboroso 500ml,46.58,Mercearia,E1
+7891000100053,Suco de Laranja Premium 2L,34.66,Bebidas,A1
+7891000100054,Feijão Nacional Pacote,81.04,Mercearia,A2
+7891000100055,Queijo Mussarela Qualidade Pacote,32.81,Laticínios,A2
+7891000100056,Papel Higiênico Premium 2kg,18.74,Higiene,B2
+7891000100057,Frango Inteiro Saboroso 1kg,70.49,Carnes,F1
+7891000100058,Torrada Eco 500g,70.51,Padaria,A2
+7891000100059,Vinho Tinto Bom Preço 2L,88.08,Bebidas,A2
+7891000100060,Pão de Forma Eco 500ml,48.03,Padaria,E1
+7891000100061,Amaciante Fazenda 2kg,65.68,Limpeza,C2
+7891000100062,Água Sanitária Bio 500ml,63.38,Limpeza,B2
+7891000100063,Shampoo Eco 500ml,2.91,Higiene,D1
+7891000100064,Pão Francês Eco 500ml,86.55,Padaria,F1
+7891000100065,Cerveja Eco 2kg,7.99,Bebidas,D1
+7891000100066,Shampoo Nacional Pacote,5.81,Higiene,A2
+7891000100067,Fio Dental Bio 1kg,83.35,Higiene,F1
+7891000100068,Biscoito Recheado Eco 1L,9.75,Padaria,E1
+7891000100069,Refrigerante Cola Saboroso 1L,37.1,Bebidas,D1
+7891000100070,Torrada Saboroso Pacote,79.47,Padaria,F2
+7891000100071,Biscoito Recheado Fazenda Unidade,66.36,Padaria,F1
+7891000100072,Creme Dental Premium 2kg,74.21,Higiene,B2
+7891000100073,Shampoo Bio 500ml,40.36,Higiene,E1
+7891000100074,Torrada Bio 500ml,67.99,Padaria,E1
+7891000100075,Azeite Premium Unidade,40.02,Mercearia,A1
+7891000100076,Acém Fazenda 500ml,73.35,Carnes,B1
+7891000100077,Esponja de Aço Eco 2L,75.71,Limpeza,B1
+7891000100078,Biscoito Recheado Qualidade 500g,28.27,Padaria,E2
+7891000100079,Queijo Mussarela Qualidade Unidade,65.02,Laticínios,F2
+7891000100080,Desinfetante Premium Unidade,20.02,Limpeza,A1
+7891000100081,Acém Eco Pacote,35.11,Carnes,A2
+7891000100082,Café Bom Preço 1L,71.13,Bebidas,C1
+7891000100083,Picanha Bom Preço 1kg,62.1,Carnes,A2
+7891000100084,Chá Gelado Nacional Pacote,66.99,Bebidas,C1
+7891000100085,Salsicha Saboroso 500ml,13.2,Carnes,A2
+7891000100086,Cebola Bom Preço 2L,94.64,Hortifruti,A2
+7891000100087,Manteiga Qualidade Unidade,74.72,Laticínios,F2
+7891000100088,Picanha Saboroso 1L,75.53,Carnes,D1
+7891000100089,Acém Eco 500ml,6.73,Carnes,D1
+7891000100090,Açúcar Premium Unidade,44.59,Mercearia,C2
+7891000100091,Requeijão Qualidade Unidade,42.74,Laticínios,E2
+7891000100092,Desodorante Eco Unidade,6.22,Higiene,F1
+7891000100093,Alface Nacional 1L,74.87,Hortifruti,E1
+7891000100094,Requeijão Nacional 1L,75.11,Laticínios,C2
+7891000100095,Creme Dental Qualidade Pacote,87.45,Higiene,D2
+7891000100096,Detergente Eco 2kg,84.38,Limpeza,C1
+7891000100097,Amaciante Saboroso Unidade,36.61,Limpeza,D2
+7891000100098,Linguiça Saboroso 1L,35.86,Carnes,F1
+7891000100099,Farinha Bio Pacote,41.83,Mercearia,B2
+7891000100100,Leite Condensado Nacional 1L,4.63,Laticínios,F2
+7891000100101,Leite Condensado Bom Preço 1kg,36.5,Laticínios,A1
+7891000100102,Maçã Bom Preço 1L,66.53,Hortifruti,C2
+7891000100103,Requeijão Qualidade 1L,42.39,Laticínios,F2
+7891000100104,Bolo de Cenoura Saboroso Pacote,26.6,Padaria,E1
+7891000100105,Biscoito Recheado Eco 500g,50.99,Padaria,C2
+7891000100106,Requeijão Nacional 500ml,52.59,Laticínios,F1
+7891000100107,Sabão em Pó Nacional Unidade,11.87,Limpeza,F2
+7891000100108,Biscoito Recheado Nacional 2kg,92.75,Padaria,C1
+7891000100109,Água Sanitária Eco 500ml,7.42,Limpeza,B2
+7891000100110,Desinfetante Nacional 1kg,44.49,Limpeza,D2
+7891000100111,Salsicha Bom Preço 500ml,75.56,Carnes,C2
+7891000100112,Shampoo Premium 2L,91.1,Higiene,C2
+7891000100113,Água Sanitária Fazenda 2kg,21.91,Limpeza,D2
+7891000100114,Shampoo Saboroso 2L,82.79,Higiene,C1
+7891000100115,Tomate Eco Pacote,17.74,Hortifruti,C1
+7891000100116,Arroz Qualidade 2L,11.17,Mercearia,C2
+7891000100117,Tomate Saboroso 1L,13.11,Hortifruti,E1
+7891000100118,Frango Inteiro Bom Preço 1L,48.57,Carnes,F1
+7891000100119,Leite Nacional 1kg,57.33,Laticínios,A1
+7891000100120,Esponja de Aço Premium 2kg,63.89,Limpeza,E2
+7891000100121,Desinfetante Eco 500ml,22.66,Limpeza,B2
+7891000100122,Amaciante Qualidade Unidade,31.41,Limpeza,B2
+7891000100123,Requeijão Eco 2kg,33.98,Laticínios,F1
+7891000100124,Feijão Nacional Pacote,71.92,Mercearia,F1
+7891000100125,Água Mineral Saboroso 2L,62.67,Bebidas,D1
+7891000100126,Creme de Leite Bom Preço Unidade,75.46,Laticínios,C2
+7891000100127,Biscoito Recheado Bio 2kg,89.02,Padaria,C2
+7891000100128,Manteiga Fazenda 1kg,93.47,Laticínios,B1
+7891000100129,Frango Inteiro Qualidade 2kg,27.37,Carnes,F2
+7891000100130,Salsicha Nacional 1kg,79.73,Carnes,D2
+7891000100131,Queijo Mussarela Premium 2kg,56.01,Laticínios,B1
+7891000100132,Pão Francês Bom Preço 1L,68.05,Padaria,C1
+7891000100133,Batata Fazenda 1L,11.42,Hortifruti,B2
+7891000100134,Iogurte Natural Bom Preço 2L,5.91,Laticínios,E1
+7891000100135,Batata Bio Unidade,94.85,Hortifruti,E2
+7891000100136,Sabão em Pó Eco Unidade,55.05,Limpeza,C2
+7891000100137,Sabonete Fazenda 1kg,4.03,Higiene,F1
+7891000100138,Bolo de Cenoura Premium 1L,92.59,Padaria,F2
+7891000100139,Açúcar Saboroso 500g,23.16,Mercearia,D2
+7891000100140,Picanha Saboroso 500g,34.56,Carnes,A1
+7891000100141,Óleo Bom Preço 500g,40.92,Mercearia,B1
+7891000100142,Alface Fazenda 1L,94.57,Hortifruti,B2
+7891000100143,Batata Qualidade 2kg,14.65,Hortifruti,B1
+7891000100144,Salsicha Eco Unidade,32.73,Carnes,B1
+7891000100145,Desinfetante Bio 2L,41.66,Limpeza,A2
+7891000100146,Iogurte Natural Bio 2L,81.71,Laticínios,B1
+7891000100147,Esponja de Aço Eco 1kg,85.38,Limpeza,E1
+7891000100148,Farinha Eco 1L,50.67,Mercearia,F1
+7891000100149,Sabão em Pó Saboroso Unidade,33.83,Limpeza,D1

@@ -1,33 +1,22 @@
+import random
+from typing import Optional
 from servidor_central.schemas import CartResponse, PromotionResponse, RecommendationResponse
 
 
-def generate_recommendations(cart: CartResponse) -> RecommendationResponse:
+def generate_recommendations(
+    cart: CartResponse,
+    all_promotions: Optional[list[PromotionResponse]] = None,
+) -> RecommendationResponse:
     # TODO: Implementar o algoritmo de recomendacao do Smart Cart.
-    lead_item = cart.items[0] if cart.items else None
-    lead_name = lead_item.name if lead_item else "sua compra"
-    lead_barcode = lead_item.barcode if lead_item else None
+    if not all_promotions:
+        all_promotions = []
+        
+    # Return 20 random promotions or all of them if less than 20
+    count = min(20, len(all_promotions))
+    recommendations = random.sample(all_promotions, count) if all_promotions else []
 
     return RecommendationResponse(
         cart_id=cart.cart_id,
         algorithm_status="not_implemented",
-        recommendations=[
-            PromotionResponse(
-                id=f"rec-{cart.cart_id}-combo",
-                title=f"Combine com {lead_name}",
-                description="Boilerplate de recomendacao para demonstrar a interface touch.",
-                product_barcode=lead_barcode,
-                discount_type="percentage",
-                discount_value=12.0,
-                aisle="A1",
-            ),
-            PromotionResponse(
-                id=f"rec-{cart.cart_id}-economia",
-                title="Oferta personalizada do carrinho",
-                description="Placeholder retornado enquanto o algoritmo real ainda nao foi implementado.",
-                product_barcode=None,
-                discount_type="fixed",
-                discount_value=7.0,
-                aisle="B2",
-            ),
-        ],
+        recommendations=recommendations,
     )

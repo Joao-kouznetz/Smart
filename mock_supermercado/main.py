@@ -3,9 +3,9 @@ from fastapi import FastAPI, HTTPException, Query, status
 from mock_supermercado.catalog_service import (
     ProductNotFoundError,
     get_product_by_barcode,
+    read_promotions,
     search_products as search_products_in_catalog,
 )
-from mock_supermercado.data import PROMOTIONS
 
 
 def create_app() -> FastAPI:
@@ -32,7 +32,7 @@ def create_app() -> FastAPI:
 
     @app.get("/promotions")
     def get_promotions() -> list[dict[str, str | float | None]]:
-        return PROMOTIONS
+        return read_promotions()
 
     return app
 

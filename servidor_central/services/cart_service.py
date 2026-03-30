@@ -11,7 +11,7 @@ from servidor_central.schemas import (
     LocationPromotionsResponse,
     RecommendationResponse,
 )
-from servidor_central.services import catalog_service
+from servidor_central.services import catalog_service, promotion_service
 
 
 class CartItemNotFoundError(Exception):
@@ -225,13 +225,15 @@ def delete_cart_item(cart_id: str, item_id: int) -> CartResponse:
 
 def get_cart_recommendations(cart_id: str) -> RecommendationResponse:
     cart = get_cart(cart_id)
-    return generate_recommendations(cart)
+    all_promotions = promotion_service.get_promotions()
+    return generate_recommendations(cart, all_promotions)
 
 
 def get_cart_location_promotions(cart_id: str) -> LocationPromotionsResponse:
     cart = get_cart(cart_id)
+    all_promotions = promotion_service.get_promotions()
     location_result = infer_location(cart)
-    return find_location_promotions(cart, location_result)
+    return find_location_promotions(cart, location_result, all_promotions)
 
 
 def checkout_cart(cart_id: str) -> CartResponse:
