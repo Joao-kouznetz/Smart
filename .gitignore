@@ -1,0 +1,9 @@
+__pycache__/
+.pytest_cache/
+*.pyc
+
+front/node_modules/
+front/dist/
+front/*.tsbuildinfo
+front/vite.config.js
+front/vite.config.d.ts
