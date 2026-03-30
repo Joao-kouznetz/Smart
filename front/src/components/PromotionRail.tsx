@@ -34,7 +34,6 @@ export function PromotionRail({
           <p className="eyebrow">{title}</p>
           <h2>{subtitle}</h2>
         </div>
-        <span className="panel__badge">Promocoes</span>
       </div>
 
       <div className="promotion-rail" role="list" aria-label={subtitle}>
@@ -45,7 +44,6 @@ export function PromotionRail({
         ) : (
           promotions.map((promotion) => (
             <article className="promotion-card" key={promotion.id} role="listitem">
-              <span className="promotion-card__tag">{formatDiscount(promotion)}</span>
               <h3>{promotion.title}</h3>
               <p>{promotion.description ?? "Oferta pronta para ser exibida no carrinho."}</p>
               <div className="promotion-card__meta">

@@ -24,7 +24,6 @@ export function CartItemsPanel({
           <p className="eyebrow">Compra atual</p>
           <h2>Resumo do carrinho</h2>
         </div>
-        <span className="panel__badge">Toque</span>
       </div>
 
       <div className="cart-summary">
@@ -55,10 +54,6 @@ export function CartItemsPanel({
                     {item.category ? ` • ${item.category}` : ""}
                     {item.aisle ? ` • Corredor ${item.aisle}` : ""}
                   </p>
-                  <div className="cart-item-card__chips">
-                    <span className="chip">Qtd. {item.quantity}</span>
-                    <span className="chip">Unit. R$ {item.unit_price.toFixed(2)}</span>
-                  </div>
                 </div>
                 <button
                   className="touch-button touch-button--danger"

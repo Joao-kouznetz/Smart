@@ -1,4 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import Keyboard from "react-simple-keyboard";
+import "react-simple-keyboard/build/css/index.css";
 
 import { CartItemsPanel } from "./components/CartItemsPanel";
 import { PromotionRail } from "./components/PromotionRail";
@@ -38,14 +40,9 @@ function SearchIcon() {
   );
 }
 
-const KEYBOARD_ROWS = [
-  ["q", "w", "e", "r", "t", "y", "u", "i", "o", "p"],
-  ["a", "s", "d", "f", "g", "h", "j", "k", "l"],
-  ["z", "x", "c", "v", "b", "n", "m"],
-] as const;
-
 function App() {
   const [deviceId] = useState(() => getResolvedDeviceId());
+  const keyboardRef = useRef<any>(null);
   const [cart, setCart] = useState<Cart | null>(null);
   const [storePromotions, setStorePromotions] = useState<Promotion[]>([]);
   const [recommendedPromotions, setRecommendedPromotions] = useState<RecommendationPayload | null>(null);
@@ -195,18 +192,17 @@ function App() {
     }
   }
 
-  async function runSearch() {
-    const normalizedQuery = searchQuery.trim();
+  async function runSearch(query: string) {
+    const normalizedQuery = query.trim();
 
     if (normalizedQuery.length < 2) {
-      setSearchError("Digite pelo menos 2 letras para pesquisar.");
+      setSearchResults([]);
+      setSearchError(null);
       return;
     }
 
     setSearching(true);
     setSearchError(null);
-    setKeyboardOpen(false);
-    setResultsOverlayOpen(true);
 
     try {
       const products = await searchProducts(normalizedQuery);
@@ -221,30 +217,55 @@ function App() {
     }
   }
 
-  function handleKeyboardKey(key: string) {
-    if (key === "ENTER") {
-      void runSearch();
-      return;
+  // Real-time search with debounce
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      void runSearch(searchQuery);
+    }, 300);
+
+    return () => clearTimeout(timeout);
+  }, [searchQuery]);
+
+  // Sync physical keyboard input with virtual keyboard state
+  useEffect(() => {
+    if (!keyboardOpen) return;
+
+    function handleKeyDown(e: KeyboardEvent) {
+      // Don't intercept if typing in a real input (like barcode)
+      if (document.activeElement?.tagName === "INPUT" && document.activeElement.id !== "search-query-overlay") {
+        return;
+      }
+
+      if (e.key === "Enter") {
+        setKeyboardOpen(false);
+        setResultsOverlayOpen(true);
+      } else if (e.key === "Escape") {
+        setKeyboardOpen(false);
+      }
     }
 
-    if (key === "BACKSPACE") {
-      setSearchQuery((current) => current.slice(0, -1));
-      return;
-    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [keyboardOpen]);
 
-    if (key === "SPACE") {
-      setSearchQuery((current) => `${current} `);
-      return;
-    }
+  function onVirtualKeyboardChange(input: string) {
+    setSearchQuery(input);
+  }
 
-    if (key === "CLEAR") {
-      setSearchQuery("");
-      setSearchError(null);
-      return;
+  function onVirtualKeyPress(button: string) {
+    if (button === "{enter}") {
+      setKeyboardOpen(false);
+      setResultsOverlayOpen(true);
     }
+    if (button === "{escape}") {
+      setKeyboardOpen(false);
+    }
+  }
 
-    setSearchQuery((current) => `${current}${key}`);
-    setSearchError(null);
+  function onPhysicalInputChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const input = event.target.value;
+    setSearchQuery(input);
+    keyboardRef.current?.setInput(input);
   }
 
   return (
@@ -280,19 +301,13 @@ function App() {
           </div>
         </header>
 
-        {bannerMessage ? (
-          <div className={`status-banner status-banner--${bannerTone}`} role="status">
-            {bannerMessage}
-          </div>
-        ) : null}
-
         <div className="layout-grid">
           <section className="workspace-column workspace-column--left">
             <PromotionRail
               emptyLabel="As recomendacoes aparecerao aqui assim que a API responder."
               loading={loadingPromotions}
               promotions={recommendedPromotions?.recommendations ?? []}
-              subtitle="Promoções para Você"
+              subtitle="Recomendado"
               title="Para você"
             />
 
@@ -308,7 +323,7 @@ function App() {
                   ].map((p) => [p.id, p])
                 ).values()
               )}
-              subtitle="Promoção Geral"
+              subtitle="Ofertas da Loja"
               title="Geral"
             />
           </section>
@@ -334,8 +349,8 @@ function App() {
           <div className="overlay-card overlay-card--keyboard">
             <div className="overlay-card__header">
               <div>
-                <p className="eyebrow">Busca touch</p>
-                <h2>Digite o nome do produto</h2>
+                <p className="eyebrow">Busca profissional</p>
+                <h2>O que você procura hoje?</h2>
               </div>
               <button
                 className="touch-button touch-button--ghost overlay-card__close"
@@ -346,58 +361,51 @@ function App() {
               </button>
             </div>
 
-            <div className="keyboard-display" aria-live="polite">
-              {searchQuery || "Toque nas teclas para compor a busca"}
+            <div className="search-bar search-bar--active">
+              <SearchIcon />
+              <input
+                autoFocus
+                id="search-query-overlay"
+                className="search-bar__input"
+                onChange={onPhysicalInputChange}
+                placeholder="Pesquisar produto pelo nome"
+                type="text"
+                value={searchQuery}
+              />
             </div>
 
             {searchError ? <div className="empty-card">{searchError}</div> : null}
 
-            <div className="keyboard-grid" role="group" aria-label="Teclado virtual">
-              {KEYBOARD_ROWS.map((row, index) => (
-                <div className="keyboard-row" key={`row-${index}`}>
-                  {row.map((key) => (
-                    <button
-                      className="touch-button touch-button--ghost keyboard-key"
-                      key={key}
-                      onClick={() => handleKeyboardKey(key)}
-                      type="button"
-                    >
-                      {key}
-                    </button>
-                  ))}
-                </div>
-              ))}
-
-              <div className="keyboard-row keyboard-row--actions">
-                <button
-                  className="touch-button touch-button--ghost keyboard-key keyboard-key--wide"
-                  onClick={() => handleKeyboardKey("SPACE")}
-                  type="button"
-                >
-                  Espaco
-                </button>
-                <button
-                  className="touch-button touch-button--ghost keyboard-key"
-                  onClick={() => handleKeyboardKey("BACKSPACE")}
-                  type="button"
-                >
-                  Apagar
-                </button>
-                <button
-                  className="touch-button touch-button--ghost keyboard-key"
-                  onClick={() => handleKeyboardKey("CLEAR")}
-                  type="button"
-                >
-                  Limpar
-                </button>
-                <button
-                  className="touch-button touch-button--primary keyboard-key keyboard-key--enter"
-                  onClick={() => handleKeyboardKey("ENTER")}
-                  type="button"
-                >
-                  Enter
-                </button>
-              </div>
+            <div className="keyboard-container">
+              <Keyboard
+                keyboardRef={(r) => (keyboardRef.current = r)}
+                onChange={onVirtualKeyboardChange}
+                onKeyPress={onVirtualKeyPress}
+                inputName="searchQuery"
+                layout={{
+                  default: [
+                    "q w e r t y u i o p",
+                    "a s d f g h j k l",
+                    "z x c v b n m {backspace}",
+                    "{space} {enter}",
+                  ],
+                }}
+                display={{
+                  "{enter}": "pesquisar",
+                  "{backspace}": "apagar",
+                  "{space}": "espaço",
+                }}
+              />
+            </div>
+            
+            <div className="keyboard-results-preview">
+              {searching ? (
+                <div className="search-status">Buscando...</div>
+              ) : searchResults.length > 0 ? (
+                <div className="search-status">Encontramos {searchResults.length} produtos. Clique em pesquisar para ver todos.</div>
+              ) : searchQuery.length >= 2 ? (
+                <div className="search-status">Nenhum produto encontrado.</div>
+              ) : null}
             </div>
           </div>
         </div>
