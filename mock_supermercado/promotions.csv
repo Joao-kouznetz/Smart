@@ -1,11 +1,11 @@
 id,title,description,product_barcode,discount_type,discount_value,aisle
-promo-gen-1,Preço Baixo: Cenoura Saboroso Pacote,Desconto fixo de R$ 20.00 no produto Cenoura Saboroso Pacote.,7891000100030,fixed,20.0,B2
-promo-gen-2,Leve 2 Pague 1: Amaciante Fazenda 2kg,Desconto fixo de R$ 20.00 no produto Amaciante Fazenda 2kg.,7891000100061,fixed,20.0,
-promo-gen-3,Imperdível: Óleo Bom Preço 500ml,Ganhe 25% de desconto em Óleo Bom Preço 500ml!,7891000100017,percentage,25.0,B1
-promo-gen-4,Leve 2 Pague 1: Cerveja Fazenda 2L,Ganhe 5% de desconto em Cerveja Fazenda 2L!,7891000100003,percentage,5.0,C1
-promo-gen-5,Preço Baixo: Batata Bio 500g,Desconto fixo de R$ 5.00 no produto Batata Bio 500g.,7891000100038,fixed,5.0,E1
+promo-gen-1,Cenoura Saboroso Pacote,Desconto fixo de R$ 20.00 no produto Cenoura Saboroso Pacote.,7891000100030,fixed,20.0,B2
+promo-gen-2,Amaciante Fazenda 2kg,Desconto fixo de R$ 20.00 no produto Amaciante Fazenda 2kg.,7891000100061,fixed,20.0,
+promo-gen-3,Óleo Bom Preço 500ml,Ganhe 25% de desconto em Óleo Bom Preço 500ml!,7891000100017,percentage,25.0,B1
+promo-gen-4,Cerveja Fazenda 2L,Ganhe 5% de desconto em Cerveja Fazenda 2L!,7891000100003,percentage,5.0,C1
+promo-gen-5,Batata Bio 500g,Desconto fixo de R$ 5.00 no produto Batata Bio 500g.,7891000100038,fixed,5.0,E1
 promo-gen-6,Seleção Especial: Amaciante Nacional Unidade,Desconto fixo de R$ 10.00 no produto Amaciante Nacional Unidade.,7891000100040,fixed,10.0,F2
-promo-gen-7,Preço Baixo: Sabonete Saboroso 1L,Ganhe 15% de desconto em Sabonete Saboroso 1L!,7891000100048,percentage,15.0,
+promo-gen-7,Sabonete Saboroso 1L,Ganhe 15% de desconto em Sabonete Saboroso 1L!,7891000100048,percentage,15.0,
 promo-gen-8,Liquidação Total: Batata Fazenda 500g,Desconto fixo de R$ 20.00 no produto Batata Fazenda 500g.,7891000100004,fixed,20.0,
 promo-gen-9,Clube de Descontos: Água Sanitária Eco 500ml,Desconto fixo de R$ 5.00 no produto Água Sanitária Eco 500ml.,7891000100109,fixed,5.0,
 promo-gen-10,Promoção de Verão: Shampoo Nacional Pacote,Desconto fixo de R$ 1.45 no produto Shampoo Nacional Pacote.,7891000100066,fixed,1.45,
@@ -13,21 +13,21 @@ promo-gen-11,Desconto do Dia: Amaciante Saboroso Unidade,Ganhe 40% de desconto e
 promo-gen-12,Só Hoje: Feijão Nacional Pacote,Desconto fixo de R$ 5.00 no produto Feijão Nacional Pacote.,7891000100124,fixed,5.0,F1
 promo-gen-13,Clube de Descontos: Salsicha Saboroso 500ml,Ganhe 30% de desconto em Salsicha Saboroso 500ml!,7891000100085,percentage,30.0,A2
 promo-gen-14,Clube de Descontos: Tomate Saboroso 1L,Ganhe 25% de desconto em Tomate Saboroso 1L!,7891000100117,percentage,25.0,E1
-promo-gen-15,Imperdível: Shampoo Premium 2L,Ganhe 20% de desconto em Shampoo Premium 2L!,7891000100112,percentage,20.0,
+promo-gen-15, Shampoo Premium 2L,Ganhe 20% de desconto em Shampoo Premium 2L!,7891000100112,percentage,20.0,
 promo-gen-16,Oferta Relâmpago: Pão Francês Premium 2kg,Desconto fixo de R$ 2.00 no produto Pão Francês Premium 2kg.,7891000100031,fixed,2.0,D2
 promo-gen-17,Promoção de Verão: Pão Francês Bom Preço 500ml,Desconto fixo de R$ 15.00 no produto Pão Francês Bom Preço 500ml.,7891000100014,fixed,15.0,A2
 promo-gen-18,Oferta Relâmpago: Requeijão Qualidade Unidade,Ganhe 30% de desconto em Requeijão Qualidade Unidade!,7891000100091,percentage,30.0,E2
 promo-gen-19,Mega Oferta: Requeijão Nacional 1L,Desconto fixo de R$ 5.00 no produto Requeijão Nacional 1L.,7891000100094,fixed,5.0,
-promo-gen-20,Imperdível: Vinho Tinto Nacional 2L,Ganhe 25% de desconto em Vinho Tinto Nacional 2L!,7891000100041,percentage,25.0,E1
+promo-gen-20, Vinho Tinto Nacional 2L,Ganhe 25% de desconto em Vinho Tinto Nacional 2L!,7891000100041,percentage,25.0,E1
 promo-gen-21,Clube de Descontos: Sabonete Fazenda 1kg,Desconto fixo de R$ 2.00 no produto Sabonete Fazenda 1kg.,7891000100137,fixed,2.0,
-promo-gen-22,Imperdível: Leite Condensado Bom Preço 2kg,Desconto fixo de R$ 1.00 no produto Leite Condensado Bom Preço 2kg.,7891000100036,fixed,1.0,
+promo-gen-22, Leite Condensado Bom Preço 2kg,Desconto fixo de R$ 1.00 no produto Leite Condensado Bom Preço 2kg.,7891000100036,fixed,1.0,
 promo-gen-23,Promoção de Verão: Farinha Bio Pacote,Desconto fixo de R$ 5.00 no produto Farinha Bio Pacote.,7891000100099,fixed,5.0,
 promo-gen-24,Oferta Relâmpago: Bolo de Cenoura Premium 1L,Ganhe 5% de desconto em Bolo de Cenoura Premium 1L!,7891000100138,percentage,5.0,F2
 promo-gen-25,Oferta Relâmpago: Iogurte Natural Bio 2L,Ganhe 30% de desconto em Iogurte Natural Bio 2L!,7891000100146,percentage,30.0,B1
 promo-gen-26,Clube de Descontos: Creme de Leite Bom Preço Unidade,Ganhe 15% de desconto em Creme de Leite Bom Preço Unidade!,7891000100126,percentage,15.0,C2
 promo-gen-27,Desconto do Dia: Manteiga Fazenda 1L,Ganhe 25% de desconto em Manteiga Fazenda 1L!,7891000100022,percentage,25.0,A1
 promo-gen-28,Seleção Especial: Esponja de Aço Premium 2kg,Desconto fixo de R$ 1.00 no produto Esponja de Aço Premium 2kg.,7891000100120,fixed,1.0,E2
-promo-gen-29,Liquidação Total: Detergente Eco 1L,Ganhe 25% de desconto em Detergente Eco 1L!,7891000100013,percentage,25.0,B2
+promo-gen-29,Detergente Eco 1L,Ganhe 25% de desconto em Detergente Eco 1L!,7891000100013,percentage,25.0,B2
 promo-gen-30,Desconto do Dia: Pão de Forma Bom Preço 1L,Ganhe 15% de desconto em Pão de Forma Bom Preço 1L!,7891000100020,percentage,15.0,F1
 promo-gen-31,Desconto do Dia: Biscoito Recheado Fazenda Unidade,Ganhe 10% de desconto em Biscoito Recheado Fazenda Unidade!,7891000100071,percentage,10.0,
 promo-gen-32,Mega Oferta: Bolo de Cenoura Saboroso Pacote,Ganhe 40% de desconto em Bolo de Cenoura Saboroso Pacote!,7891000100104,percentage,40.0,
@@ -35,41 +35,41 @@ promo-gen-33,Preço Baixo: Biscoito Recheado Eco 500g,Ganhe 15% de desconto em B
 promo-gen-34,Oferta Relâmpago: Presunto Fazenda 500ml,Ganhe 25% de desconto em Presunto Fazenda 500ml!,7891000100023,percentage,25.0,
 promo-gen-35,Clube de Descontos: Picanha Eco Pacote,Desconto fixo de R$ 2.00 no produto Picanha Eco Pacote.,7891000100010,fixed,2.0,F2
 promo-gen-36,Oferta Relâmpago: Shampoo Eco 500ml,Desconto fixo de R$ 0.73 no produto Shampoo Eco 500ml.,7891000100063,fixed,0.73,D1
-promo-gen-37,Liquidação Total: Biscoito Recheado Premium Unidade,Ganhe 40% de desconto em Biscoito Recheado Premium Unidade!,7891000100043,percentage,40.0,A1
+promo-gen-37,Biscoito Recheado Premium Unidade,Ganhe 40% de desconto em Biscoito Recheado Premium Unidade!,7891000100043,percentage,40.0,A1
 promo-gen-38,Clube de Descontos: Queijo Mussarela Premium 2kg,Ganhe 5% de desconto em Queijo Mussarela Premium 2kg!,7891000100131,percentage,5.0,B1
 promo-gen-39,Especial de Final de Semana: Leite Condensado Bom Preço 1kg,Ganhe 40% de desconto em Leite Condensado Bom Preço 1kg!,7891000100028,percentage,40.0,C2
 promo-gen-40,Promoção de Verão: Açúcar Premium Unidade,Desconto fixo de R$ 2.00 no produto Açúcar Premium Unidade.,7891000100090,fixed,2.0,C2
-promo-gen-41,Imperdível: Detergente Eco 2kg,Ganhe 10% de desconto em Detergente Eco 2kg!,7891000100096,percentage,10.0,
+promo-gen-41,Detergente Eco 2kg,Ganhe 10% de desconto em Detergente Eco 2kg!,7891000100096,percentage,10.0,
 promo-gen-42,Preço Baixo: Biscoito Recheado Eco 1L,Ganhe 25% de desconto em Biscoito Recheado Eco 1L!,7891000100068,percentage,25.0,
-promo-gen-43,Leve 2 Pague 1: Salsicha Qualidade Pacote,Desconto fixo de R$ 2.00 no produto Salsicha Qualidade Pacote.,7891000100032,fixed,2.0,
+promo-gen-43,Salsicha Qualidade Pacote,Desconto fixo de R$ 2.00 no produto Salsicha Qualidade Pacote.,7891000100032,fixed,2.0,
 promo-gen-44,Oferta Relâmpago: Desinfetante Premium Unidade,Ganhe 5% de desconto em Desinfetante Premium Unidade!,7891000100080,percentage,5.0,
 promo-gen-45,Especial de Final de Semana: Biscoito Recheado Bio 2kg,Desconto fixo de R$ 15.00 no produto Biscoito Recheado Bio 2kg.,7891000100127,fixed,15.0,
 promo-gen-46,Especial de Final de Semana: Biscoito Recheado Nacional 2kg,Ganhe 15% de desconto em Biscoito Recheado Nacional 2kg!,7891000100108,percentage,15.0,
 promo-gen-47,Preço Baixo: Desodorante Eco 1L,Ganhe 25% de desconto em Desodorante Eco 1L!,7891000100024,percentage,25.0,D2
 promo-gen-48,Oferta Relâmpago: Salsicha Eco Unidade,Ganhe 50% de desconto em Salsicha Eco Unidade!,7891000100144,percentage,50.0,B1
 promo-gen-49,Mega Oferta: Pão de Forma Eco 500ml,Desconto fixo de R$ 20.00 no produto Pão de Forma Eco 500ml.,7891000100060,fixed,20.0,
-promo-gen-50,Baixa de Preço: Milho Fazenda 2kg,Desconto fixo de R$ 20.00 no produto Milho Fazenda 2kg.,7891000100005,fixed,20.0,
+promo-gen-50,Milho Fazenda 2kg,Desconto fixo de R$ 20.00 no produto Milho Fazenda 2kg.,7891000100005,fixed,20.0,
 promo-gen-51,Clube de Descontos: Torrada Bio 500ml,Ganhe 25% de desconto em Torrada Bio 500ml!,7891000100074,percentage,25.0,E1
 promo-gen-52,Oferta Relâmpago: Feijão Bom Preço 1L,Ganhe 15% de desconto em Feijão Bom Preço 1L!,7891000100050,percentage,15.0,
 promo-gen-53,Clube de Descontos: Frango Inteiro Bom Preço 1L,Ganhe 30% de desconto em Frango Inteiro Bom Preço 1L!,7891000100118,percentage,30.0,F1
-promo-gen-54,Baixa de Preço: Salsicha Bom Preço 500ml,Desconto fixo de R$ 10.00 no produto Salsicha Bom Preço 500ml.,7891000100111,fixed,10.0,C2
+promo-gen-54,Salsicha Bom Preço 500ml,Desconto fixo de R$ 10.00 no produto Salsicha Bom Preço 500ml.,7891000100111,fixed,10.0,C2
 promo-gen-55,Clube de Descontos: Sabão em Pó Nacional 2L,Desconto fixo de R$ 1.00 no produto Sabão em Pó Nacional 2L.,7891000100011,fixed,1.0,D1
-promo-gen-56,Baixa de Preço: Alface Nacional 1L,Desconto fixo de R$ 10.00 no produto Alface Nacional 1L.,7891000100093,fixed,10.0,E1
-promo-gen-57,Imperdível: Esponja de Aço Qualidade 1kg,Desconto fixo de R$ 10.00 no produto Esponja de Aço Qualidade 1kg.,7891000100025,fixed,10.0,C1
-promo-gen-58,Leve 2 Pague 1: Torrada Bom Preço 2kg,Ganhe 30% de desconto em Torrada Bom Preço 2kg!,7891000100009,percentage,30.0,B2
+promo-gen-56,Alface Nacional 1L,Desconto fixo de R$ 10.00 no produto Alface Nacional 1L.,7891000100093,fixed,10.0,E1
+promo-gen-57,Esponja de Aço Qualidade 1kg,Desconto fixo de R$ 10.00 no produto Esponja de Aço Qualidade 1kg.,7891000100025,fixed,10.0,C1
+promo-gen-58,Torrada Bom Preço 2kg,Ganhe 30% de desconto em Torrada Bom Preço 2kg!,7891000100009,percentage,30.0,B2
 promo-gen-59,Promoção de Verão: Batata Qualidade 2kg,Ganhe 15% de desconto em Batata Qualidade 2kg!,7891000100143,percentage,15.0,B1
 promo-gen-60,Só Hoje: Açúcar Saboroso 500ml,Desconto fixo de R$ 5.00 no produto Açúcar Saboroso 500ml.,7891000100052,fixed,5.0,
 promo-gen-61,Só Hoje: Água Mineral Saboroso 2L,Ganhe 25% de desconto em Água Mineral Saboroso 2L!,7891000100125,percentage,25.0,D1
-promo-gen-62,Promoção de Verão: Salsicha Eco 500g,Desconto fixo de R$ 20.00 no produto Salsicha Eco 500g.,7891000100029,fixed,20.0,C2
-promo-gen-63,Promoção de Verão: Sabão em Pó Saboroso Unidade,Desconto fixo de R$ 5.00 no produto Sabão em Pó Saboroso Unidade.,7891000100149,fixed,5.0,
+promo-gen-62,Salsicha Eco 500g,Desconto fixo de R$ 20.00 no produto Salsicha Eco 500g.,7891000100029,fixed,20.0,C2
+promo-gen-63,Sabão em Pó Saboroso Unidade,Desconto fixo de R$ 5.00 no produto Sabão em Pó Saboroso Unidade.,7891000100149,fixed,5.0,
 promo-gen-64,Clube de Descontos: Shampoo Nacional 2kg,Desconto fixo de R$ 20.00 no produto Shampoo Nacional 2kg.,7891000100006,fixed,20.0,D2
-promo-gen-65,Promoção de Verão: Tomate Fazenda 2kg,Ganhe 50% de desconto em Tomate Fazenda 2kg!,7891000100012,percentage,50.0,
+promo-gen-65,Tomate Fazenda 2kg,Ganhe 50% de desconto em Tomate Fazenda 2kg!,7891000100012,percentage,50.0,
 promo-gen-66,Clube de Descontos: Tomate Fazenda Pacote,Ganhe 30% de desconto em Tomate Fazenda Pacote!,7891000100042,percentage,30.0,
 promo-gen-67,Liquidação Total: Creme Dental Qualidade Pacote,Desconto fixo de R$ 1.00 no produto Creme Dental Qualidade Pacote.,7891000100095,fixed,1.0,D2
 promo-gen-68,Desconto do Dia: Macarrão Bom Preço Pacote,Desconto fixo de R$ 2.00 no produto Macarrão Bom Preço Pacote.,7891000100039,fixed,2.0,
 promo-gen-69,Oferta Relâmpago: Cerveja Eco 2kg,Ganhe 40% de desconto em Cerveja Eco 2kg!,7891000100065,percentage,40.0,D1
 promo-gen-70,Clube de Descontos: Manteiga Fazenda 1kg,Ganhe 5% de desconto em Manteiga Fazenda 1kg!,7891000100128,percentage,5.0,
-promo-gen-71,Seleção Especial: Amaciante Bio 2kg,Ganhe 50% de desconto em Amaciante Bio 2kg!,7891000100015,percentage,50.0,D1
+promo-gen-71,Amaciante Bio 2kg,Ganhe 50% de desconto em Amaciante Bio 2kg!,7891000100015,percentage,50.0,D1
 promo-gen-72,Liquidação Total: Cebola Bom Preço 2L,Desconto fixo de R$ 15.00 no produto Cebola Bom Preço 2L.,7891000100086,fixed,15.0,A2
 promo-gen-73,Especial de Final de Semana: Manteiga Saboroso 2kg,Ganhe 10% de desconto em Manteiga Saboroso 2kg!,7891000100021,percentage,10.0,
 promo-gen-74,Imperdível: Suco de Laranja Premium 2L,Ganhe 20% de desconto em Suco de Laranja Premium 2L!,7891000100053,percentage,20.0,A1
@@ -78,24 +78,24 @@ promo-gen-76,Promoção de Verão: Presunto Bio 1kg,Ganhe 40% de desconto em Pre
 promo-gen-77,Clube de Descontos: Água Mineral Saboroso 500g,Ganhe 30% de desconto em Água Mineral Saboroso 500g!,7891000100026,percentage,30.0,C2
 promo-gen-78,Desconto do Dia: Óleo Bom Preço 500g,Ganhe 20% de desconto em Óleo Bom Preço 500g!,7891000100141,percentage,20.0,B1
 promo-gen-79,Mega Oferta: Esponja de Aço Eco 1kg,Desconto fixo de R$ 15.00 no produto Esponja de Aço Eco 1kg.,7891000100147,fixed,15.0,E1
-promo-gen-80,Baixa de Preço: Farinha Eco 1L,Desconto fixo de R$ 5.00 no produto Farinha Eco 1L.,7891000100148,fixed,5.0,F1
+promo-gen-80,Farinha Eco 1L,Desconto fixo de R$ 5.00 no produto Farinha Eco 1L.,7891000100148,fixed,5.0,F1
 promo-gen-81,Clube de Descontos: Esponja de Aço Qualidade 2kg,Ganhe 40% de desconto em Esponja de Aço Qualidade 2kg!,7891000100045,percentage,40.0,
 promo-gen-82,Preço Baixo: Frango Inteiro Premium 500ml,Ganhe 25% de desconto em Frango Inteiro Premium 500ml!,7891000100001,percentage,25.0,E2
 promo-gen-83,Preço Baixo: Batata Bio Pacote,Desconto fixo de R$ 10.00 no produto Batata Bio Pacote.,7891000100016,fixed,10.0,E1
-promo-gen-84,Baixa de Preço: Queijo Mussarela Qualidade Unidade,Ganhe 50% de desconto em Queijo Mussarela Qualidade Unidade!,7891000100079,percentage,50.0,F2
+promo-gen-84,Queijo Mussarela Qualidade Unidade,Ganhe 50% de desconto em Queijo Mussarela Qualidade Unidade!,7891000100079,percentage,50.0,F2
 promo-gen-85,Clube de Descontos: Queijo Mussarela Qualidade Pacote,Ganhe 50% de desconto em Queijo Mussarela Qualidade Pacote!,7891000100055,percentage,50.0,A2
 promo-gen-86,Promoção de Verão: Maçã Bom Preço 1L,Ganhe 50% de desconto em Maçã Bom Preço 1L!,7891000100102,percentage,50.0,C2
 promo-gen-87,Oferta Relâmpago: Linguiça Saboroso 1L,Desconto fixo de R$ 15.00 no produto Linguiça Saboroso 1L.,7891000100098,fixed,15.0,F1
 promo-gen-88,Desconto do Dia: Linguiça Nacional 500ml,Ganhe 15% de desconto em Linguiça Nacional 500ml!,7891000100018,percentage,15.0,
-promo-gen-89,Leve 2 Pague 1: Água Sanitária Bio 500ml,Desconto fixo de R$ 10.00 no produto Água Sanitária Bio 500ml.,7891000100062,fixed,10.0,
-promo-gen-90,Leve 2 Pague 1: Arroz Qualidade 2L,Desconto fixo de R$ 2.00 no produto Arroz Qualidade 2L.,7891000100116,fixed,2.0,
+promo-gen-89,Água Sanitária Bio 500ml,Desconto fixo de R$ 10.00 no produto Água Sanitária Bio 500ml.,7891000100062,fixed,10.0,
+promo-gen-90,Arroz Qualidade 2L,Desconto fixo de R$ 2.00 no produto Arroz Qualidade 2L.,7891000100116,fixed,2.0,
 promo-gen-91,Especial de Final de Semana: Desinfetante Bom Preço 1kg,Desconto fixo de R$ 2.00 no produto Desinfetante Bom Preço 1kg.,7891000100035,fixed,2.0,F1
 promo-gen-92,Promoção de Verão: Leite Nacional 1kg,Desconto fixo de R$ 20.00 no produto Leite Nacional 1kg.,7891000100119,fixed,20.0,A1
 promo-gen-93,Imperdível: Batata Bio Unidade,Ganhe 10% de desconto em Batata Bio Unidade!,7891000100135,percentage,10.0,
 promo-gen-94,Especial de Final de Semana: Requeijão Nacional 500ml,Ganhe 15% de desconto em Requeijão Nacional 500ml!,7891000100106,percentage,15.0,F1
 promo-gen-95,Só Hoje: Água Sanitária Fazenda 2kg,Ganhe 40% de desconto em Água Sanitária Fazenda 2kg!,7891000100113,percentage,40.0,
-promo-gen-96,Clube de Descontos: Creme de Leite Nacional Unidade,Desconto fixo de R$ 15.00 no produto Creme de Leite Nacional Unidade.,7891000100047,fixed,15.0,C1
-promo-gen-97,Liquidação Total: Café Bom Preço 1L,Desconto fixo de R$ 1.00 no produto Café Bom Preço 1L.,7891000100082,fixed,1.0,C1
+promo-gen-96,Creme de Leite Nacional Unidade,Desconto fixo de R$ 15.00 no produto Creme de Leite Nacional Unidade.,7891000100047,fixed,15.0,C1
+promo-gen-97,Café Bom Preço 1L,Desconto fixo de R$ 1.00 no produto Café Bom Preço 1L.,7891000100082,fixed,1.0,C1
 promo-gen-98,Oferta Relâmpago: Desinfetante Nacional 1kg,Ganhe 20% de desconto em Desinfetante Nacional 1kg!,7891000100110,percentage,20.0,D2
 promo-gen-99,Especial de Final de Semana: Papel Higiênico Premium 2kg,Ganhe 30% de desconto em Papel Higiênico Premium 2kg!,7891000100056,percentage,30.0,B2
-promo-gen-100,Seleção Especial: Frango Inteiro Qualidade 2kg,Desconto fixo de R$ 5.00 no produto Frango Inteiro Qualidade 2kg.,7891000100129,fixed,5.0,F2
+promo-gen-100,Frango Inteiro Qualidade 2kg,Desconto fixo de R$ 5.00 no produto Frango Inteiro Qualidade 2kg.,7891000100129,fixed,5.0,F2

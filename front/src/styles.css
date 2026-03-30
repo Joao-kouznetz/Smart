@@ -626,48 +626,76 @@ input {
   min-height: 2.8rem;
 }
 
-.keyboard-display {
-  min-height: 4rem;
-  border-radius: 20px;
-  padding: 0.95rem 1rem;
-  background: rgba(255, 255, 255, 0.92);
-  border: 1px solid rgba(24, 48, 40, 0.08);
-  font-size: 1.15rem;
+.keyboard-container {
+  padding: 1.5rem 0;
+}
+
+.hg-theme-default {
+  background-color: transparent !important;
+  color: var(--green-dark) !important;
+}
+
+.hg-button {
+  height: 4.5rem !important;
+  border-radius: 12px !important;
+  font-weight: 800 !important;
+  font-size: 1.1rem !important;
+  text-transform: uppercase !important;
+  background: white !important;
+  border-bottom: 3px solid rgba(0, 0, 0, 0.1) !important;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05) !important;
+}
+
+.hg-button:active {
+  background: #f0f0f0 !important;
+  transform: translateY(2px) !important;
+  border-bottom-width: 1px !important;
+}
+
+.hg-button-enter {
+  background: linear-gradient(135deg, var(--orange) 0%, var(--orange-dark) 100%) !important;
+  color: white !important;
+  min-width: 12rem !important;
+}
+
+.hg-button-space {
+  min-width: 15rem !important;
+}
+
+.search-status {
+  text-align: center;
   font-weight: 700;
-  color: var(--green-dark);
-  display: flex;
-  align-items: center;
+  color: var(--muted);
+  padding: 0.5rem;
+  font-size: 1rem;
 }
 
-.keyboard-grid {
-  display: grid;
-  gap: 0.6rem;
+.keyboard-results-preview {
+  margin-top: auto;
+  min-height: 2.5rem;
 }
 
-.keyboard-row {
-  display: flex;
-  justify-content: center;
-  gap: 0.55rem;
-  flex-wrap: wrap;
+.search-bar--active {
+  background: white !important;
+  border: 2px solid var(--green) !important;
+  margin: 1rem 0;
 }
 
-.keyboard-row--actions {
-  margin-top: 0.15rem;
+.search-bar--active .search-bar__input {
+  pointer-events: auto !important;
 }
 
-.keyboard-key {
-  min-width: 4.1rem;
-  min-height: 3.4rem;
-  padding-inline: 0.95rem;
-  text-transform: uppercase;
+@media (max-width: 1024px) {
+  .hg-button {
+    height: 3.8rem !important;
+  }
 }
 
-.keyboard-key--wide {
-  min-width: 10rem;
-}
-
-.keyboard-key--enter {
-  min-width: 8.5rem;
+@media (max-width: 640px) {
+  .hg-button {
+    height: 3.2rem !important;
+    font-size: 0.9rem !important;
+  }
 }
 
 @media (max-width: 1024px) {
