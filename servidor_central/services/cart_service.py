@@ -201,23 +201,46 @@ def delete_cart_item(cart_id: str, item_id: int) -> CartResponse:
     ensure_cart_exists(cart_id)
 
     with get_connection() as connection:
-        deleted = connection.execute(
+        existing_item = connection.execute(
             """
-            DELETE FROM cart_items
+            SELECT id, quantity, barcode
+            FROM cart_items
             WHERE id = ? AND cart_id = ?
             """,
             (item_id, cart_id),
-        )
+        ).fetchone()
 
-        if deleted.rowcount == 0:
+        if not existing_item:
             raise CartItemNotFoundError("Item nao encontrado no carrinho.")
+
+        current_quantity = int(existing_item["quantity"])
+        barcode = str(existing_item["barcode"])
+
+        if current_quantity > 1:
+            connection.execute(
+                """
+                UPDATE cart_items
+                SET quantity = ?, updated_at = ?
+                WHERE id = ?
+                """,
+                (current_quantity - 1, utc_now_iso(), item_id),
+            )
+        else:
+            connection.execute(
+                """
+                DELETE FROM cart_items
+                WHERE id = ?
+                """,
+                (item_id,),
+            )
 
         _touch_cart(connection, cart_id)
         _record_interaction(
             connection,
             cart_id,
             "item_removed",
-            payload={"item_id": item_id},
+            barcode=barcode,
+            payload={"item_id": item_id, "previous_quantity": current_quantity},
         )
 
     return get_cart(cart_id)
