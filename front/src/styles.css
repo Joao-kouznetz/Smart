@@ -209,6 +209,7 @@ input {
   min-height: 0;
   border-radius: 24px;
   padding: 0.9rem;
+  overflow: hidden;
 }
 
 .panel__header {
@@ -337,6 +338,11 @@ input {
   color: #fff9f3;
 }
 
+.touch-button--success {
+  background: linear-gradient(135deg, var(--green) 0%, var(--green-dark) 100%);
+  color: #fff9f3;
+}
+
 .touch-button--ghost {
   background: rgba(31, 107, 82, 0.1);
   color: var(--green-dark);
@@ -380,7 +386,13 @@ input {
   font-weight: 800;
 }
 
-.overlay-results,
+.overlay-results {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(22rem, 1fr));
+  gap: 1rem;
+  padding-bottom: 2rem;
+}
+
 .cart-items-scroll {
   display: grid;
   gap: 0.7rem;
@@ -388,13 +400,6 @@ input {
   overflow: auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
-}
-
-.overlay-results {
-  flex: 1;
-}
-
-.cart-items-scroll {
   flex: 1;
 }
 
@@ -603,12 +608,44 @@ input {
   gap: 0.85rem;
 }
 
-.overlay-card--keyboard {
-  width: min(54rem, 100%);
+.overlay-shell--fullscreen {
+  padding: 0;
+  background: white;
 }
 
-.overlay-card--results {
-  width: min(48rem, 100%);
+.overlay-card--fullscreen {
+  width: 100vw;
+  height: 100vh;
+  max-width: none;
+  max-height: none;
+  border-radius: 0;
+  border: none;
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem;
+  background:
+    radial-gradient(circle at top left, rgba(255, 206, 128, 0.15), transparent 40%),
+    white;
+}
+
+.search-results-live {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  margin: 1rem 0;
+  padding-right: 0.5rem;
+  /* Ensure scrolling feels good */
+  -webkit-overflow-scrolling: touch;
+}
+
+.overlay-card--fullscreen .keyboard-container {
+  margin-top: auto;
+  padding: 1rem 0 0.5rem;
+  border-top: 1px solid var(--outline);
+}
+
+.overlay-card--fullscreen .search-bar--active {
+  margin: 0.5rem 0;
 }
 
 .overlay-card__header {

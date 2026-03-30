@@ -49,6 +49,10 @@ export function CartItemsPanel({
                     <h3>{item.name}</h3>
                     <span className="cart-item-card__subtotal">R$ {item.subtotal.toFixed(2)}</span>
                   </div>
+                  <div className="cart-item-card__chips">
+                    <span className="chip">Qtd: {item.quantity}</span>
+                    <span className="chip">R$ {item.unit_price.toFixed(2)} un</span>
+                  </div>
                   <p className="cart-item-card__meta">
                     Barcode {item.barcode}
                     {item.category ? ` • ${item.category}` : ""}
@@ -61,7 +65,7 @@ export function CartItemsPanel({
                   onClick={() => onRemoveItem(item)}
                   type="button"
                 >
-                  {busyItemId === item.item_id ? "Removendo..." : "Remover"}
+                  {busyItemId === item.item_id ? "..." : item.quantity > 1 ? "Remover 1" : "Remover"}
                 </button>
               </article>
             ))

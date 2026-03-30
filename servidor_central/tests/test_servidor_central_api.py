@@ -181,6 +181,41 @@ def test_delete_cart_item_removes_target_item(client, monkeypatch):
     assert payload["total_amount"] == 0
 
 
+def test_delete_cart_item_decrements_quantity(client, monkeypatch):
+    def fake_get_product(_: str):
+        return ProductResponse(
+            barcode="444",
+            name="Leite",
+            price=5.0,
+            category="Laticinios",
+            aisle="L1",
+        )
+
+    monkeypatch.setattr(catalog_service, "get_product_by_barcode", fake_get_product)
+
+    # Add 2 items
+    client.post("/cart/cart-dec/items", json={"barcode": "444", "quantity": 2}).json()
+    cart = client.get("/cart/cart-dec").json()
+    item_id = cart["items"][0]["item_id"]
+    assert cart["items"][0]["quantity"] == 2
+
+    # Delete 1 item
+    response = client.delete(f"/cart/cart-dec/items/{item_id}")
+    assert response.status_code == 200
+    payload = response.json()
+    
+    assert len(payload["items"]) == 1
+    assert payload["items"][0]["quantity"] == 1
+    assert payload["total_items"] == 1
+    assert payload["total_amount"] == 5.0
+
+    # Delete again (should remove)
+    response = client.delete(f"/cart/cart-dec/items/{item_id}")
+    payload = response.json()
+    assert payload["items"] == []
+    assert payload["total_items"] == 0
+
+
 def test_checkout_clears_all_cart_items(client, monkeypatch):
     def fake_get_product(_: str):
         return ProductResponse(

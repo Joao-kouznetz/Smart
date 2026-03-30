@@ -62,6 +62,8 @@ function App() {
   const [searchError, setSearchError] = useState<string | null>(null);
   const [keyboardOpen, setKeyboardOpen] = useState(false);
   const [resultsOverlayOpen, setResultsOverlayOpen] = useState(false);
+  const [lastAddedBarcode, setLastAddedBarcode] = useState<string | null>(null);
+  const [addedStatus, setAddedStatus] = useState<"success" | "error" | null>(null);
 
   async function loadCart() {
     const nextCart = await fetchCart(deviceId);
@@ -135,14 +137,16 @@ function App() {
         quantity,
       });
       await refreshAfterCartChange(nextCart);
-      setSearchQuery("");
-      setSearchResults([]);
-      setResultsOverlayOpen(false);
+      setLastAddedBarcode(normalizedBarcode);
+      setAddedStatus("success");
+      setTimeout(() => setAddedStatus(null), 2000);
       setBarcodeInput("");
       setManualQuantity(1);
       setBannerTone("success");
       setBannerMessage("Produto adicionado com sucesso. Toque para continuar comprando.");
     } catch (error) {
+      setAddedStatus("error");
+      setTimeout(() => setAddedStatus(null), 2000);
       const message =
         error instanceof ApiError ? error.message : "Nao foi possivel adicionar o produto.";
       setBannerTone("error");
@@ -255,7 +259,6 @@ function App() {
   function onVirtualKeyPress(button: string) {
     if (button === "{enter}") {
       setKeyboardOpen(false);
-      setResultsOverlayOpen(true);
     }
     if (button === "{escape}") {
       setKeyboardOpen(false);
@@ -301,6 +304,12 @@ function App() {
           </div>
         </header>
 
+        {bannerMessage ? (
+          <div className={`status-banner status-banner--${bannerTone}`} onClick={() => setBannerMessage(null)}>
+            {bannerMessage}
+          </div>
+        ) : null}
+
         <div className="layout-grid">
           <section className="workspace-column workspace-column--left">
             <PromotionRail
@@ -342,15 +351,15 @@ function App() {
       {keyboardOpen ? (
         <div
           aria-modal="true"
-          className="overlay-shell"
+          className="overlay-shell overlay-shell--fullscreen"
           role="dialog"
-          aria-label="Teclado virtual de busca"
+          aria-label="Busca de produtos"
         >
-          <div className="overlay-card overlay-card--keyboard">
+          <div className="overlay-card overlay-card--fullscreen">
             <div className="overlay-card__header">
               <div>
-                <p className="eyebrow">Busca profissional</p>
-                <h2>O que você procura hoje?</h2>
+                <p className="eyebrow">Pesquisa em tempo real</p>
+                <h2>{searchQuery.trim() ? `Buscando "${searchQuery}"...` : "O que você procura?"}</h2>
               </div>
               <button
                 className="touch-button touch-button--ghost overlay-card__close"
@@ -368,13 +377,60 @@ function App() {
                 id="search-query-overlay"
                 className="search-bar__input"
                 onChange={onPhysicalInputChange}
-                placeholder="Pesquisar produto pelo nome"
+                placeholder="Comece a digitar o nome do produto..."
                 type="text"
                 value={searchQuery}
               />
             </div>
 
-            {searchError ? <div className="empty-card">{searchError}</div> : null}
+            <div className="search-results-live">
+              {searching ? (
+                <div className="search-status">Buscando produtos...</div>
+              ) : searchResults.length > 0 ? (
+                <div className="overlay-results" role="list">
+                  {searchResults.map((product) => (
+                    <article className="search-result-card" key={product.barcode} role="listitem">
+                      <div>
+                        <h3>{product.name}</h3>
+                        <p>
+                          Barcode {product.barcode}
+                          {product.category ? ` • ${product.category}` : ""}
+                          {product.aisle ? ` • Corredor ${product.aisle}` : ""}
+                        </p>
+                        <strong>R$ {product.price.toFixed(2)}</strong>
+                      </div>
+                      <button
+                        className={`touch-button ${
+                          addedStatus === "success" && lastAddedBarcode === product.barcode
+                            ? "touch-button--success"
+                            : addedStatus === "error" && lastAddedBarcode === product.barcode
+                            ? "touch-button--danger"
+                            : "touch-button--primary"
+                        }`}
+                        disabled={submittingAction}
+                        onClick={() => {
+                          setLastAddedBarcode(product.barcode);
+                          void handleAddItem(product.barcode, 1);
+                        }}
+                        type="button"
+                      >
+                        {addedStatus === "success" && lastAddedBarcode === product.barcode
+                          ? "✓ Adicionado"
+                          : addedStatus === "error" && lastAddedBarcode === product.barcode
+                          ? "✕ Erro"
+                          : submittingAction && lastAddedBarcode === product.barcode
+                          ? "..."
+                          : "Adicionar"}
+                      </button>
+                    </article>
+                  ))}
+                </div>
+              ) : searchQuery.length >= 2 ? (
+                <div className="empty-card">Nenhum produto encontrado para "{searchQuery}".</div>
+              ) : (
+                <div className="search-status">Digite pelo menos 2 letras para buscar.</div>
+              )}
+            </div>
 
             <div className="keyboard-container">
               <Keyboard
@@ -391,77 +447,11 @@ function App() {
                   ],
                 }}
                 display={{
-                  "{enter}": "pesquisar",
+                  "{enter}": "concluir",
                   "{backspace}": "apagar",
                   "{space}": "espaço",
                 }}
               />
-            </div>
-            
-            <div className="keyboard-results-preview">
-              {searching ? (
-                <div className="search-status">Buscando...</div>
-              ) : searchResults.length > 0 ? (
-                <div className="search-status">Encontramos {searchResults.length} produtos. Clique em pesquisar para ver todos.</div>
-              ) : searchQuery.length >= 2 ? (
-                <div className="search-status">Nenhum produto encontrado.</div>
-              ) : null}
-            </div>
-          </div>
-        </div>
-      ) : null}
-
-      {resultsOverlayOpen ? (
-        <div
-          aria-modal="true"
-          className="overlay-shell"
-          role="dialog"
-          aria-label="Resultados da pesquisa"
-        >
-          <div className="overlay-card overlay-card--results">
-            <div className="overlay-card__header">
-              <div>
-                <p className="eyebrow">Resultados</p>
-                <h2>{searchQuery.trim() ? `Produtos para "${searchQuery}"` : "Produtos encontrados"}</h2>
-              </div>
-              <button
-                className="touch-button touch-button--ghost overlay-card__close"
-                onClick={() => setResultsOverlayOpen(false)}
-                type="button"
-              >
-                Fechar
-              </button>
-            </div>
-
-            <div className="overlay-results" role="list" aria-label="Resultados da pesquisa">
-              {searching ? <div className="empty-card">Buscando produtos...</div> : null}
-              {!searching && searchError ? <div className="empty-card">{searchError}</div> : null}
-              {!searching && !searchError && searchResults.length === 0 ? (
-                <div className="empty-card">Nenhum produto encontrado para esse termo.</div>
-              ) : null}
-              {!searching &&
-                !searchError &&
-                searchResults.map((product) => (
-                  <article className="search-result-card" key={product.barcode} role="listitem">
-                    <div>
-                      <h3>{product.name}</h3>
-                      <p>
-                        Barcode {product.barcode}
-                        {product.category ? ` • ${product.category}` : ""}
-                        {product.aisle ? ` • Corredor ${product.aisle}` : ""}
-                      </p>
-                      <strong>R$ {product.price.toFixed(2)}</strong>
-                    </div>
-                    <button
-                      className="touch-button touch-button--primary"
-                      disabled={submittingAction}
-                      onClick={() => void handleAddItem(product.barcode, 1)}
-                      type="button"
-                    >
-                      Adicionar
-                    </button>
-                  </article>
-                ))}
             </div>
           </div>
         </div>
