@@ -304,12 +304,6 @@ function App() {
           </div>
         </header>
 
-        {bannerMessage ? (
-          <div className={`status-banner status-banner--${bannerTone}`} onClick={() => setBannerMessage(null)}>
-            {bannerMessage}
-          </div>
-        ) : null}
-
         <div className="layout-grid">
           <section className="workspace-column workspace-column--left">
             <PromotionRail
@@ -363,6 +357,7 @@ function App() {
               </div>
               <button
                 className="touch-button touch-button--ghost overlay-card__close"
+
                 onClick={() => setKeyboardOpen(false)}
                 type="button"
               >
