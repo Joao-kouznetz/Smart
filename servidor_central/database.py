@@ -36,11 +36,37 @@ CREATE TABLE IF NOT EXISTS cart_interactions (
     FOREIGN KEY (cart_id) REFERENCES carts (id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS purchase_history (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    persona TEXT,
+    purchase_date TEXT NOT NULL,
+    total_amount REAL NOT NULL,
+    total_items INTEGER NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS purchase_items (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    purchase_id INTEGER NOT NULL,
+    barcode TEXT NOT NULL,
+    name TEXT NOT NULL,
+    price REAL NOT NULL,
+    quantity INTEGER NOT NULL,
+    category TEXT,
+    aisle TEXT,
+    FOREIGN KEY (purchase_id) REFERENCES purchase_history (id) ON DELETE CASCADE
+);
+
 CREATE INDEX IF NOT EXISTS idx_cart_items_cart_id
 ON cart_items (cart_id);
 
 CREATE INDEX IF NOT EXISTS idx_cart_interactions_cart_id
 ON cart_interactions (cart_id);
+
+CREATE INDEX IF NOT EXISTS idx_purchase_items_purchase_id
+ON purchase_items (purchase_id);
+
+CREATE INDEX IF NOT EXISTS idx_purchase_items_barcode
+ON purchase_items (barcode);
 """
 
 
