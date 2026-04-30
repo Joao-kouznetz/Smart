@@ -21,3 +21,5 @@ python3 scripts/populate_simulated_purchases.py 50 --seed 42
 
 Por padrao o script usa o banco configurado por `SMART_CART_DB_PATH`, ou
 `servidor_central/smart_cart.db` quando a variavel nao estiver definida.
+Use `--clear-existing-data` se quiser apagar os dados simulados antes de gravar
+um novo lote.
