@@ -12,6 +12,7 @@ from servidor_central.schemas import (
     CartResponse,
     HealthResponse,
     LocationGraphRebuildRequest,
+    LocationGraphLinkDetailsResponse,
     LocationGraphResponse,
     LocationResponse,
     LocationPromotionsResponse,
@@ -119,6 +120,27 @@ def get_location_graph() -> LocationGraphResponse:
             detail="Grafo de localizacao nao encontrado. Execute o rebuild antes de visualizar.",
         )
     return LocationGraphResponse(**graph)
+
+
+@router.get("/location-graph/links/{source}/{target}", response_model=LocationGraphLinkDetailsResponse)
+def get_location_graph_link_details(source: str, target: str) -> LocationGraphLinkDetailsResponse:
+    graph = load_location_graph()
+    if graph is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Grafo de localizacao nao encontrado. Execute o rebuild antes de visualizar.",
+        )
+
+    from servidor_central.algorithms.location_graph import get_location_graph_link_details as load_link_details
+
+    details = load_link_details(source, target, graph=graph)
+    if details is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Link nao encontrado no grafo de localizacao.",
+        )
+
+    return LocationGraphLinkDetailsResponse(**details)
 
 
 @router.post("/location-graph/rebuild", response_model=LocationGraphResponse)

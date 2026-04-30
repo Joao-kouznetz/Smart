@@ -76,19 +76,70 @@ export interface LocationGraphLink {
   max_elapsed_seconds: number;
   strength: number;
   visual_distance: number;
+  analysis?: LocationGraphLinkAnalysis | null;
+}
+
+export interface LocationGraphLinkNodeDetail {
+  barcode: string;
+  name?: string | null;
+  category?: string | null;
+  aisle?: string | null;
+  scan_count?: number | null;
+  x?: number | null;
+  y?: number | null;
+}
+
+export interface LocationGraphLinkSample {
+  cart_id: string;
+  elapsed_seconds: number;
+  transition_at: string;
+  weight: number;
+  kept_after_lower: boolean;
+  kept_after_upper: boolean;
+  used_for_weight: boolean;
+}
+
+export interface LocationGraphLinkAnalysis {
+  branch: string;
+  outlier_method?: string | null;
+  decision: string;
+  discard_reason?: string | null;
+  sample_count_initial: number;
+  lower_threshold_seconds?: number | null;
+  upper_threshold_seconds?: number | null;
+  dip_p_value?: number | null;
+  dependency_warning?: string | null;
+  min_raw_edge_samples?: number | null;
+  min_clean_edge_samples?: number | null;
+  raw_sample_count: number;
+  lower_cleaned_sample_count: number;
+  upper_cleaned_sample_count: number;
+  sample_count_after_lower: number;
+  sample_count_after_upper: number;
+  sample_count_final: number;
+  discarded_after_lower_threshold: number;
+  discarded_after_upper_threshold: number;
+  weight_seconds?: number | null;
+  formula_lower?: string | null;
+  formula_upper?: string | null;
+  formula_weight?: string | null;
+  formula_summary?: string | null;
+}
+
+export interface LocationGraphLinkDetails {
+  source: string;
+  target: string;
+  source_node?: LocationGraphLinkNodeDetail | null;
+  target_node?: LocationGraphLinkNodeDetail | null;
+  link: LocationGraphLink;
+  analysis: LocationGraphLinkAnalysis;
+  samples: LocationGraphLinkSample[];
 }
 
 export interface LocationGraphPayload {
   nodes: LocationGraphNode[];
   links: LocationGraphLink[];
   meta: Record<string, unknown>;
-}
-
-export interface LocationGraphRebuildPayload {
-  start_at?: string | null;
-  temporal_decay: boolean;
-  half_life_days: number;
-  decay_min_weight: number;
 }
 
 export interface LocationGraphNeighbor {

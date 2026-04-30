@@ -8,7 +8,10 @@ PYTHON ?= python3
 .PHONY: dev-servidor dev-mock dev-front build-front build-location-graph
 
 dev-servidor:
-	BASE_SUPERMARKET_API_URL=$(MOCK_URL) $(FASTAPI) dev servidor_central/main.py --port $(SERVER_PORT)
+	@trap 'kill 0' EXIT; \
+	cd front && $(NPM) run build && $(NPM) run dev -- --host 0.0.0.0 & \
+	BASE_SUPERMARKET_API_URL=$(MOCK_URL) $(FASTAPI) dev servidor_central/main.py --port $(SERVER_PORT) & \
+	wait
 
 dev-mock:
 	$(FASTAPI) dev mock_supermercado/main.py --port $(MOCK_PORT)

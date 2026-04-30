@@ -85,6 +85,63 @@ class LocationGraphResponse(BaseModel):
     meta: dict[str, Any]
 
 
+class LocationGraphLinkNodeResponse(BaseModel):
+    barcode: str
+    name: str | None = None
+    category: str | None = None
+    aisle: str | None = None
+    scan_count: int | None = None
+    x: float | None = None
+    y: float | None = None
+
+
+class LocationGraphLinkSampleResponse(BaseModel):
+    cart_id: str
+    elapsed_seconds: float
+    transition_at: str
+    weight: float
+    kept_after_lower: bool
+    kept_after_upper: bool
+    used_for_weight: bool
+
+
+class LocationGraphLinkAnalysisResponse(BaseModel):
+    branch: str
+    outlier_method: str | None = None
+    decision: str
+    discard_reason: str | None = None
+    sample_count_initial: int
+    lower_threshold_seconds: float | None = None
+    upper_threshold_seconds: float | None = None
+    dip_p_value: float | None = None
+    dependency_warning: str | None = None
+    min_raw_edge_samples: int | None = None
+    min_clean_edge_samples: int | None = None
+    raw_sample_count: int
+    lower_cleaned_sample_count: int
+    upper_cleaned_sample_count: int
+    sample_count_after_lower: int
+    sample_count_after_upper: int
+    sample_count_final: int
+    discarded_after_lower_threshold: int
+    discarded_after_upper_threshold: int
+    weight_seconds: float | None = None
+    formula_lower: str | None = None
+    formula_upper: str | None = None
+    formula_weight: str | None = None
+    formula_summary: str | None = None
+
+
+class LocationGraphLinkDetailsResponse(BaseModel):
+    source: str
+    target: str
+    source_node: LocationGraphLinkNodeResponse | None = None
+    target_node: LocationGraphLinkNodeResponse | None = None
+    link: dict[str, Any]
+    analysis: LocationGraphLinkAnalysisResponse
+    samples: list[LocationGraphLinkSampleResponse]
+
+
 class HealthResponse(BaseModel):
     status: Literal["ok"]
     database_path: str
