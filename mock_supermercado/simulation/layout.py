@@ -34,7 +34,7 @@ SUPERMARKET_LAYOUT = {
         },
         {
             "barcode": "7891000100075",
-            "name": "Azeite Seleção",
+            "name": "Azeite",
             "dist_lateral_1_m": 18.0,
             "dist_lateral_2_m": 2.0,
         },
@@ -240,7 +240,7 @@ SUPERMARKET_LAYOUT = {
         },
         {
             "barcode": "7891000100021",
-            "name": "Manteiga",
+            "name": "Manteiga salgada",
             "dist_lateral_1_m": 11.0,
             "dist_lateral_2_m": 9.0,
         },
@@ -266,7 +266,7 @@ SUPERMARKET_LAYOUT = {
         },
         {
             "barcode": "7891000100016",
-            "name": "Batata",
+            "name": "Batata Organica",
             "dist_lateral_1_m": 5.0,
             "dist_lateral_2_m": 15.0,
         },
@@ -298,7 +298,7 @@ SUPERMARKET_LAYOUT = {
         },
         {
             "barcode": "7891000100001",
-            "name": "Frango Inteiro ",
+            "name": "Frango Inteiro",
             "dist_lateral_1_m": 7.0,
             "dist_lateral_2_m": 13.0,
         },
@@ -310,13 +310,13 @@ SUPERMARKET_LAYOUT = {
         },
         {
             "barcode": "7891000100027",
-            "name": "Torrada",
+            "name": "Torrada integral",
             "dist_lateral_1_m": 15.0,
             "dist_lateral_2_m": 5.0,
         },
         {
             "barcode": "7891000100078",
-            "name": "Biscoito",
+            "name": "Biscoito Recheado",
             "dist_lateral_1_m": 18.0,
             "dist_lateral_2_m": 2.0,
         },
@@ -348,7 +348,7 @@ SUPERMARKET_LAYOUT = {
         },
         {
             "barcode": "7891000100067",
-            "name": "Fio Dental",
+            "name": "Fio Dental Natural",
             "dist_lateral_1_m": 18.0,
             "dist_lateral_2_m": 2.0,
         },
@@ -368,7 +368,7 @@ SUPERMARKET_LAYOUT = {
         },
         {
             "barcode": "7891000100033",
-            "name": "Óleo de Soja",
+            "name": "Óleo",
             "dist_lateral_1_m": 10.0,
             "dist_lateral_2_m": 10.0,
         },

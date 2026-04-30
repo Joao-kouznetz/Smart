@@ -1,8 +1,8 @@
 import type {
   AddCartItemPayload,
   Cart,
+  LocationGraphLinkDetails,
   LocationGraphPayload,
-  LocationGraphRebuildPayload,
   LocationPromotionsPayload,
   Product,
   Promotion,
@@ -90,9 +90,6 @@ export function fetchLocationGraph(): Promise<LocationGraphPayload> {
   return requestJson<LocationGraphPayload>("/location-graph");
 }
 
-export function rebuildLocationGraph(payload: LocationGraphRebuildPayload): Promise<LocationGraphPayload> {
-  return requestJson<LocationGraphPayload>("/location-graph/rebuild", {
-    method: "POST",
-    body: JSON.stringify(payload),
-  });
+export function fetchLocationGraphLinkDetails(source: string, target: string): Promise<LocationGraphLinkDetails> {
+  return requestJson<LocationGraphLinkDetails>(`/location-graph/links/${source}/${target}`);
 }
