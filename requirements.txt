@@ -1,4 +1,7 @@
 fastapi>=0.112,<1.0
 httpx>=0.27,<1.0
+numpy>=1.26,<3.0
+scipy>=1.12,<2.0
+diptest>=0.9,<1.0
 pytest>=8.0,<9.0
 uvicorn>=0.30,<1.0

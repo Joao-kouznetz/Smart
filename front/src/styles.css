@@ -785,3 +785,184 @@ input {
     flex: 1 1 30%;
   }
 }
+
+.graph-debug-shell {
+  background: #f4f7f8;
+  color: #17202a;
+  display: grid;
+  grid-template-columns: minmax(320px, 380px) minmax(0, 1fr);
+  min-height: 100vh;
+}
+
+.graph-debug-panel {
+  background: #ffffff;
+  border-right: 1px solid rgba(23, 32, 42, 0.12);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-height: 100vh;
+  overflow: auto;
+  padding: 1.25rem;
+}
+
+.graph-debug-panel h1,
+.graph-debug-panel h2,
+.graph-debug-panel p {
+  margin: 0;
+}
+
+.graph-debug-panel h1 {
+  font-size: 1.6rem;
+}
+
+.graph-debug-panel h2 {
+  font-size: 1rem;
+}
+
+.graph-field {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.graph-field span,
+.graph-toggle span {
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.graph-field input {
+  border: 1px solid rgba(23, 32, 42, 0.16);
+  border-radius: 8px;
+  color: #17202a;
+  min-height: 2.75rem;
+  padding: 0 0.85rem;
+}
+
+.graph-toggle {
+  align-items: center;
+  display: flex;
+  gap: 0.55rem;
+}
+
+.graph-toggle input {
+  height: 1.1rem;
+  width: 1.1rem;
+}
+
+.graph-rebuild-box,
+.graph-stats,
+.graph-selection {
+  border: 1px solid rgba(23, 32, 42, 0.1);
+  border-radius: 8px;
+  display: grid;
+  gap: 0.85rem;
+  padding: 1rem;
+}
+
+.graph-message {
+  border-radius: 8px;
+  font-weight: 700;
+  padding: 0.85rem;
+}
+
+.graph-message--info {
+  background: #e8f1f7;
+  color: #24516b;
+}
+
+.graph-message--success {
+  background: #e7f5ef;
+  color: #1f6f57;
+}
+
+.graph-message--error {
+  background: #feeceb;
+  color: #9d2b25;
+}
+
+.graph-stats dl {
+  display: grid;
+  gap: 0.65rem;
+  margin: 0;
+}
+
+.graph-stats dl div {
+  align-items: baseline;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
+.graph-stats dt {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.graph-stats dd {
+  font-weight: 800;
+  margin: 0;
+}
+
+.graph-selection {
+  line-height: 1.45;
+}
+
+.graph-selection strong {
+  font-size: 1.05rem;
+}
+
+.graph-selection p {
+  color: var(--muted);
+}
+
+.graph-neighbors {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.graph-neighbors article {
+  border-bottom: 1px solid rgba(23, 32, 42, 0.08);
+  display: grid;
+  gap: 0.15rem;
+  padding-bottom: 0.55rem;
+}
+
+.graph-neighbors span {
+  font-weight: 750;
+}
+
+.graph-neighbors small {
+  color: var(--muted);
+}
+
+.graph-canvas-shell {
+  min-height: 100vh;
+  overflow: hidden;
+  position: relative;
+}
+
+.graph-empty-state {
+  align-items: center;
+  color: var(--muted);
+  display: flex;
+  font-size: 1.1rem;
+  font-weight: 700;
+  height: 100vh;
+  justify-content: center;
+}
+
+@media (max-width: 900px) {
+  .graph-debug-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .graph-debug-panel {
+    max-height: none;
+  }
+
+  .graph-canvas-shell,
+  .graph-empty-state {
+    min-height: 70vh;
+  }
+}

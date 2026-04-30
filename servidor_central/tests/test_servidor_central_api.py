@@ -307,22 +307,23 @@ def test_get_product_not_found_returns_404(client, monkeypatch):
     assert response.status_code == 404
 
 
-def test_algorithm_endpoints_return_placeholder_payloads(client):
+def test_algorithm_endpoints_return_graph_status_payloads(client):
     recommendations_response = client.get("/cart/cart-4/recommendations")
     location_promotions_response = client.get("/cart/cart-4/promotions/location")
 
     assert recommendations_response.status_code == 200
     recommendations_payload = recommendations_response.json()
     assert recommendations_payload["cart_id"] == "cart-4"
-    assert recommendations_payload["algorithm_status"] == "not_implemented"
-    assert len(recommendations_payload["recommendations"]) == 2
+    assert recommendations_payload["algorithm_status"] == "cache_missing"
+    assert recommendations_payload["recommendations"] == []
 
     assert location_promotions_response.status_code == 200
     location_payload = location_promotions_response.json()
     assert location_payload["cart_id"] == "cart-4"
-    assert location_payload["algorithm_status"] == "not_implemented"
-    assert location_payload["inferred_location"] == "Corredor sugerido"
-    assert len(location_payload["promotions"]) == 2
+    assert location_payload["algorithm_status"] == "cache_missing"
+    assert location_payload["inferred_location"] is None
+    assert location_payload["graph_position"] is None
+    assert location_payload["promotions"] == []
 
 
 def test_servidor_central_uses_mocked_http_request_for_catalog(client, mock_supermarket_request):
