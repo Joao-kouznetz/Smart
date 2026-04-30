@@ -44,11 +44,16 @@ function nodeLabel(node: LocationGraphNode): string {
 }
 
 function linkLabel(link: LocationGraphLink): string {
+  const analysis = (link as LocationGraphLink & { analysis?: { branch?: string; decision?: string } }).analysis;
   return [
     `${getNodeId(link.source)} -> ${getNodeId(link.target)}`,
     `Tempo medio: ${formatSeconds(link.avg_elapsed_seconds)}`,
     `Transicoes: ${link.transition_count}`,
-  ].join("\n");
+    analysis?.branch ? `Branch: ${analysis.branch}` : null,
+    analysis?.decision ? `Decisao: ${analysis.decision}` : null,
+  ]
+    .filter((line): line is string => Boolean(line))
+    .join("\n");
 }
 
 function getNodeIdFromLink(link: LocationGraphLink): [string, string] {
@@ -70,6 +75,8 @@ export function GraphDebugPage() {
   const [linkDetails, setLinkDetails] = useState<LocationGraphLinkDetails | null>(null);
   const [linkLoading, setLinkLoading] = useState(false);
   const [binWidthSeconds, setBinWidthSeconds] = useState(0.1);
+  const [detailWindow, setDetailWindow] = useState({ x: 48, y: 120, width: 560, height: 640 });
+  const [isDraggingDetail, setIsDraggingDetail] = useState(false);
   const [colorByAisle, setColorByAisle] = useState(true);
   const [colorByCategory, setColorByCategory] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -200,6 +207,51 @@ export function GraphDebugPage() {
     return getNodeIdFromLink(link).join("::") === selectedLinkKey;
   }
 
+  function startDetailDrag(event: React.PointerEvent<HTMLDivElement>) {
+    if ((event.target as HTMLElement).closest("button, input, label")) return;
+    detailDragOffsetRef.current = {
+      x: event.clientX - detailWindow.x,
+      y: event.clientY - detailWindow.y,
+    };
+    setIsDraggingDetail(true);
+    event.currentTarget.setPointerCapture(event.pointerId);
+  }
+
+  function moveDetailWindow(clientX: number, clientY: number) {
+    const offset = detailDragOffsetRef.current;
+    if (!offset) return;
+    const nextX = Math.max(16, clientX - offset.x);
+    const nextY = Math.max(16, clientY - offset.y);
+    setDetailWindow((current) => ({ ...current, x: nextX, y: nextY }));
+  }
+
+  function endDetailDrag() {
+    detailDragOffsetRef.current = null;
+    setIsDraggingDetail(false);
+  }
+
+  useEffect(() => {
+    if (!isDraggingDetail) return;
+
+    function handleMove(event: PointerEvent) {
+      moveDetailWindow(event.clientX, event.clientY);
+    }
+
+    function handleUp() {
+      endDetailDrag();
+    }
+
+    window.addEventListener("pointermove", handleMove);
+    window.addEventListener("pointerup", handleUp);
+    window.addEventListener("pointercancel", handleUp);
+
+    return () => {
+      window.removeEventListener("pointermove", handleMove);
+      window.removeEventListener("pointerup", handleUp);
+      window.removeEventListener("pointercancel", handleUp);
+    };
+  }, [isDraggingDetail]);
+
   const histogramBins = useMemo(() => {
     if (!linkDetails) return [];
     const width = Math.max(binWidthSeconds, 0.01);
@@ -228,8 +280,29 @@ export function GraphDebugPage() {
       1,
       ...linkDetails.samples.map((sample) => sample.elapsed_seconds),
       linkDetails.analysis.upper_threshold_seconds ?? 0,
-      linkDetails.analysis.lower_threshold_seconds,
+      linkDetails.analysis.lower_threshold_seconds ?? 0,
+      linkDetails.analysis.weight_seconds ?? 0,
     );
+  }, [linkDetails]);
+
+  const analysisTitle = useMemo(() => {
+    if (!linkDetails) return "";
+    switch (linkDetails.analysis.branch) {
+      case "low_volume":
+        return "Descartado por volume inicial";
+      case "median":
+        return "Mediana do link";
+      case "fallback_log_iqr":
+        return "Fallback log/IQR";
+      case "kde_bimodal":
+        return "KDE bimodal";
+      case "kde_unimodal":
+        return "KDE unimodal";
+      case "kde_dependency_fallback":
+        return "KDE com fallback de dependencias";
+      default:
+        return linkDetails.analysis.branch;
+    }
   }, [linkDetails]);
 
   return (
@@ -290,12 +363,20 @@ export function GraphDebugPage() {
               <dd>{graph?.meta.edge_count as number | undefined ?? "-"}</dd>
             </div>
             <div>
-              <dt>Transições válidas</dt>
-              <dd>{graph?.meta.valid_transition_count as number | undefined ?? "-"}</dd>
+              <dt>Arestas mantidas</dt>
+              <dd>{graph?.meta.kept_link_count as number | undefined ?? "-"}</dd>
             </div>
             <div>
-              <dt>Threshold inferior</dt>
-              <dd>{formatSeconds(graph?.meta.lower_threshold_seconds as number | undefined)}</dd>
+              <dt>Mediana</dt>
+              <dd>{graph?.meta.median_link_count as number | undefined ?? "-"}</dd>
+            </div>
+            <div>
+              <dt>KDE</dt>
+              <dd>{graph?.meta.kde_link_count as number | undefined ?? "-"}</dd>
+            </div>
+            <div>
+              <dt>Fallback</dt>
+              <dd>{graph?.meta.fallback_link_count as number | undefined ?? "-"}</dd>
             </div>
           </dl>
         </section>
@@ -347,8 +428,14 @@ export function GraphDebugPage() {
       </aside>
 
       {selectedLink && linkDetails ? (
-        <aside className="graph-float-panel graph-float-panel--link-detail">
-          <div className="graph-float-panel__header">
+        <aside
+          className={`graph-float-panel graph-float-panel--link-detail ${isDraggingDetail ? "graph-float-panel--dragging" : ""}`}
+          style={{ left: detailWindow.x, top: detailWindow.y, width: detailWindow.width, height: detailWindow.height }}
+        >
+          <div
+            className="graph-float-panel__header"
+            onPointerDown={startDetailDrag}
+          >
             <div>
               <h2>Detalhe do link</h2>
               <p>{getNodeId(selectedLink.source)} → {getNodeId(selectedLink.target)}</p>
@@ -392,22 +479,26 @@ export function GraphDebugPage() {
                 <line x1="32" y1="20" x2="32" y2="148" className="graph-axis" />
                 <text x="166" y="172" textAnchor="middle" className="graph-axis-label">Tempo (s)</text>
                 <text x="10" y="84" textAnchor="middle" className="graph-axis-label" transform="rotate(-90 10 84)">Quantidade</text>
-                <line
-                  x1={32 + (linkDetails.analysis.lower_threshold_seconds / histogramMaxTime) * 268}
-                  x2={32 + (linkDetails.analysis.lower_threshold_seconds / histogramMaxTime) * 268}
-                  y1="20"
-                  y2="148"
-                  className="graph-threshold graph-threshold--lower"
-                />
-                <text
-                  x={32 + (linkDetails.analysis.lower_threshold_seconds / histogramMaxTime) * 268}
-                  y="16"
-                  textAnchor="middle"
-                  className="graph-threshold-label"
-                >
-                  {formatSeconds(linkDetails.analysis.lower_threshold_seconds)}
-                </text>
-                {linkDetails.analysis.upper_threshold_seconds ? (
+                {linkDetails.analysis.lower_threshold_seconds != null ? (
+                  <>
+                    <line
+                      x1={32 + (linkDetails.analysis.lower_threshold_seconds / histogramMaxTime) * 268}
+                      x2={32 + (linkDetails.analysis.lower_threshold_seconds / histogramMaxTime) * 268}
+                      y1="20"
+                      y2="148"
+                      className="graph-threshold graph-threshold--lower"
+                    />
+                    <text
+                      x={32 + (linkDetails.analysis.lower_threshold_seconds / histogramMaxTime) * 268}
+                      y="16"
+                      textAnchor="middle"
+                      className="graph-threshold-label"
+                    >
+                      {formatSeconds(linkDetails.analysis.lower_threshold_seconds)}
+                    </text>
+                  </>
+                ) : null}
+                {linkDetails.analysis.upper_threshold_seconds != null ? (
                   <>
                     <line
                       x1={32 + (linkDetails.analysis.upper_threshold_seconds / histogramMaxTime) * 268}
@@ -431,7 +522,10 @@ export function GraphDebugPage() {
                   const barHeight = (bin.count / histogramMaxCount) * 108;
                   const x = 32 + (bin.time / histogramMaxTime) * 268;
                   const y = 148 - barHeight;
-                  const kept = bin.time >= linkDetails.analysis.lower_threshold_seconds;
+                  const kept =
+                    linkDetails.analysis.lower_threshold_seconds == null
+                      ? true
+                      : bin.time >= linkDetails.analysis.lower_threshold_seconds;
                   return (
                     <g key={bin.time}>
                       <rect
@@ -461,11 +555,11 @@ export function GraphDebugPage() {
 
             <div className="graph-analysis">
               <p>
-                Metodo: <strong>{linkDetails.analysis.outlier_method ?? "n/a"}</strong>
+                Metodo: <strong>{analysisTitle}</strong>
               </p>
               <p>
                 Lower threshold: <strong>{formatSeconds(linkDetails.analysis.lower_threshold_seconds)}</strong>
-                {linkDetails.analysis.upper_threshold_seconds ? (
+                {linkDetails.analysis.upper_threshold_seconds != null ? (
                   <> • Upper threshold: <strong>{formatSeconds(linkDetails.analysis.upper_threshold_seconds)}</strong></>
                 ) : null}
               </p>
@@ -475,8 +569,21 @@ export function GraphDebugPage() {
               <p>
                 Cortes: {linkDetails.analysis.discarded_after_lower_threshold} removidas no lower, {linkDetails.analysis.discarded_after_upper_threshold} no upper.
               </p>
+              {linkDetails.analysis.weight_seconds != null ? (
+                <p>
+                  Peso do link: <strong>{formatSeconds(linkDetails.analysis.weight_seconds)}</strong>
+                </p>
+              ) : null}
+              {linkDetails.analysis.formula_summary ? <p>{linkDetails.analysis.formula_summary}</p> : null}
+              {linkDetails.analysis.formula_lower ? <p>Lower: {linkDetails.analysis.formula_lower}</p> : null}
+              {linkDetails.analysis.formula_upper ? <p>Upper: {linkDetails.analysis.formula_upper}</p> : null}
+              {linkDetails.analysis.formula_weight ? <p>Peso: {linkDetails.analysis.formula_weight}</p> : null}
               {linkDetails.analysis.dip_p_value != null ? <p>Dip test p-value: {linkDetails.analysis.dip_p_value.toFixed(4)}</p> : null}
               {linkDetails.analysis.dependency_warning ? <p>{linkDetails.analysis.dependency_warning}</p> : null}
+              <p>
+                {linkDetails.analysis.sample_count_initial} amostras iniciais, {linkDetails.analysis.sample_count_after_lower} apos lower, {linkDetails.analysis.sample_count_after_upper} apos upper.
+              </p>
+              {linkDetails.analysis.discard_reason ? <p>Link descartado: {linkDetails.analysis.discard_reason}</p> : null}
             </div>
 
             <div className="graph-neighbors graph-sample-list">
@@ -486,6 +593,7 @@ export function GraphDebugPage() {
                   <small>
                     {formatSeconds(sample.elapsed_seconds)} • {formatIsoDate(sample.transition_at)} • {sample.kept_after_lower ? "keep lower" : "drop lower"}
                     {sample.kept_after_lower && !sample.kept_after_upper ? " • drop upper" : ""}
+                    {sample.used_for_weight ? " • used for weight" : ""}
                   </small>
                 </article>
               ))}

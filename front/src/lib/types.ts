@@ -76,6 +76,7 @@ export interface LocationGraphLink {
   max_elapsed_seconds: number;
   strength: number;
   visual_distance: number;
+  analysis?: LocationGraphLinkAnalysis | null;
 }
 
 export interface LocationGraphLinkNodeDetail {
@@ -95,11 +96,16 @@ export interface LocationGraphLinkSample {
   weight: number;
   kept_after_lower: boolean;
   kept_after_upper: boolean;
+  used_for_weight: boolean;
 }
 
 export interface LocationGraphLinkAnalysis {
+  branch: string;
   outlier_method?: string | null;
-  lower_threshold_seconds: number;
+  decision: string;
+  discard_reason?: string | null;
+  sample_count_initial: number;
+  lower_threshold_seconds?: number | null;
   upper_threshold_seconds?: number | null;
   dip_p_value?: number | null;
   dependency_warning?: string | null;
@@ -108,8 +114,16 @@ export interface LocationGraphLinkAnalysis {
   raw_sample_count: number;
   lower_cleaned_sample_count: number;
   upper_cleaned_sample_count: number;
+  sample_count_after_lower: number;
+  sample_count_after_upper: number;
+  sample_count_final: number;
   discarded_after_lower_threshold: number;
   discarded_after_upper_threshold: number;
+  weight_seconds?: number | null;
+  formula_lower?: string | null;
+  formula_upper?: string | null;
+  formula_weight?: string | null;
+  formula_summary?: string | null;
 }
 
 export interface LocationGraphLinkDetails {

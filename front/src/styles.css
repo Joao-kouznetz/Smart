@@ -1141,11 +1141,9 @@ input {
 }
 
 .graph-float-panel--link-detail {
-  bottom: 24px;
   max-height: calc(100vh - 48px);
   min-height: 420px;
-  right: 24px;
-  width: min(560px, calc(100vw - 48px));
+  max-width: calc(100vw - 48px);
 }
 
 .graph-float-panel--dragging {
@@ -1162,6 +1160,7 @@ input {
   gap: 1rem;
   padding: 0.9rem 1rem;
   user-select: none;
+  touch-action: none;
 }
 
 .graph-float-panel__header:active {
