@@ -192,3 +192,40 @@ def test_rebuild_location_graph_reports_per_link_analysis(tmp_path, monkeypatch)
     link = graph["links"][0]
     assert link["analysis"]["branch"] in {"fallback_log_iqr", "kde_bimodal", "kde_unimodal"}
     assert "formula_weight" in link["analysis"]
+
+
+def test_rebuild_location_graph_merges_bidirectional_links(tmp_path, monkeypatch):
+    db_path = tmp_path / "smart_cart.db"
+    monkeypatch.setenv("SMART_CART_DB_PATH", str(db_path))
+    init_db()
+
+    base_at = datetime(2026, 4, 1, 10, 0, tzinfo=timezone.utc)
+    with sqlite3.connect(db_path) as connection:
+        for index in range(20):
+            cart_id = f"cart-{index}"
+            start_at = base_at + timedelta(minutes=index)
+            connection.execute(
+                "INSERT INTO carts (id, created_at, updated_at) VALUES (?, ?, ?)",
+                (cart_id, start_at.isoformat(), start_at.isoformat()),
+            )
+            _insert_product(connection, cart_id=cart_id, barcode="az", name="Azeite", aisle="A1")
+            _insert_product(connection, cart_id=cart_id, barcode="su", name="Suco", aisle="B1")
+            if index % 2 == 0:
+                _insert_scan(connection, cart_id=cart_id, barcode="az", created_at=start_at)
+                _insert_scan(connection, cart_id=cart_id, barcode="su", created_at=start_at + timedelta(seconds=10))
+            else:
+                _insert_scan(connection, cart_id=cart_id, barcode="su", created_at=start_at)
+                _insert_scan(connection, cart_id=cart_id, barcode="az", created_at=start_at + timedelta(seconds=10))
+
+    graph = rebuild_location_graph()
+
+    assert graph["meta"]["raw_transition_count"] == 20
+    assert graph["meta"]["valid_transition_count"] == 20
+    assert graph["meta"]["edge_count"] == 1
+    assert graph["meta"]["kept_link_count"] == 1
+    link = graph["links"][0]
+    assert {link["source"], link["target"]} == {"az", "su"}
+    assert link["transition_count"] == 20
+    assert link["analysis"]["sample_count_initial"] == 20
+    assert link["analysis"]["sample_count_final"] == 20
+    assert link["analysis"]["branch"] == "fallback_log_iqr"

@@ -19,6 +19,11 @@ MIN_CLEAN_EDGE_SAMPLES = 10
 THRESHOLD_EPSILON = 1e-9
 
 
+def _canonical_edge_key(source: str, target: str) -> tuple[str, str]:
+    """Gera uma chave estável para unir ida e volta do mesmo par."""
+    return tuple(sorted((str(source), str(target))))
+
+
 @dataclass(frozen=True)
 class TransitionSample:
     cart_id: str
@@ -119,11 +124,17 @@ def get_location_graph_link_details(
     if graph is None:
         return None
 
+    canonical_source, canonical_target = _canonical_edge_key(source, target)
     link = next(
         (
             item
             for item in graph.get("links", [])
-            if item.get("source") == source and item.get("target") == target
+            if (
+                item.get("source") == canonical_source and item.get("target") == canonical_target
+            )
+            or (
+                item.get("source") == canonical_target and item.get("target") == canonical_source
+            )
         ),
         None,
     )
@@ -145,7 +156,7 @@ def get_location_graph_link_details(
     edge_samples = [
         sample
         for sample in samples
-        if sample.source == source and sample.target == target
+        if _canonical_edge_key(sample.source, sample.target) == (canonical_source, canonical_target)
     ]
     if not edge_samples:
         return None
@@ -394,7 +405,7 @@ def _clean_transition_samples(
     """Analisa cada link e remove as arestas descartadas."""
     grouped: dict[tuple[str, str], list[TransitionSample]] = defaultdict(list)
     for sample in samples:
-        grouped[(sample.source, sample.target)].append(sample)
+        grouped[_canonical_edge_key(sample.source, sample.target)].append(sample)
 
     cleaned_edges: dict[tuple[str, str], list[TransitionSample]] = {}
     edge_analyses: dict[tuple[str, str], dict[str, Any]] = {}
@@ -872,7 +883,7 @@ def _build_graph_payload(
 
     grouped_samples: dict[tuple[str, str], list[TransitionSample]] = defaultdict(list)
     for sample in samples:
-        grouped_samples[(sample.source, sample.target)].append(sample)
+        grouped_samples[_canonical_edge_key(sample.source, sample.target)].append(sample)
 
     links = []
     for (source, target), raw_edge_samples in grouped_samples.items():

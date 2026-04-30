@@ -60,6 +60,10 @@ function getNodeIdFromLink(link: LocationGraphLink): [string, string] {
   return [getNodeId(link.source), getNodeId(link.target)];
 }
 
+function canonicalLinkKey(link: LocationGraphLink): string {
+  return getNodeIdFromLink(link).sort().join("::");
+}
+
 function formatIsoDate(value: string): string {
   const date = new Date(value);
   return Number.isNaN(date.getTime()) ? value : date.toLocaleString("pt-BR", { hour12: false });
@@ -132,14 +136,18 @@ export function GraphDebugPage() {
 
   const selectedLinks = useMemo(() => {
     if (!graph || !selectedId) return [];
-    return graph.links
-      .filter((link) => getNodeId(link.source) === selectedId || getNodeId(link.target) === selectedId)
-      .sort((a, b) => b.strength - a.strength);
+    const unique = new Map<string, LocationGraphLink>();
+    for (const link of graph.links) {
+      if (getNodeId(link.source) !== selectedId && getNodeId(link.target) !== selectedId) continue;
+      const key = canonicalLinkKey(link);
+      if (!unique.has(key)) unique.set(key, link);
+    }
+    return Array.from(unique.values()).sort((a, b) => b.strength - a.strength);
   }, [graph, selectedId]);
 
   const selectedLink = useMemo(() => {
     if (!selectedLinkKey) return null;
-    return selectedLinks.find((link) => getNodeIdFromLink(link).join("::") === selectedLinkKey) ?? null;
+    return selectedLinks.find((link) => canonicalLinkKey(link) === selectedLinkKey) ?? null;
   }, [selectedLinkKey, selectedLinks]);
 
   const selectedNeighborIds = useMemo(() => {
@@ -185,7 +193,7 @@ export function GraphDebugPage() {
 
   async function loadLinkDetails(link: LocationGraphLink) {
     const [source, target] = getNodeIdFromLink(link);
-    const key = `${source}::${target}`;
+    const key = canonicalLinkKey(link);
     setSelectedLinkKey(key);
     setLinkLoading(true);
     setMessage(null);
@@ -204,7 +212,7 @@ export function GraphDebugPage() {
 
   function isLinkSelected(link: LocationGraphLink): boolean {
     if (!selectedLinkKey) return false;
-    return getNodeIdFromLink(link).join("::") === selectedLinkKey;
+    return canonicalLinkKey(link) === selectedLinkKey;
   }
 
   function startDetailDrag(event: React.PointerEvent<HTMLDivElement>) {
@@ -403,7 +411,7 @@ export function GraphDebugPage() {
                     const targetId = getNodeId(link.target);
                     const neighborId = sourceId === selectedNode.id ? targetId : sourceId;
                     const neighbor = graph?.nodes.find((node) => node.id === neighborId);
-                    const key = `${sourceId}::${targetId}`;
+                    const key = [sourceId, targetId].sort().join("::");
                     return (
                       <button
                         className={`graph-link-card ${selectedLinkKey === key ? "graph-link-card--active" : ""}`}
@@ -461,6 +469,7 @@ export function GraphDebugPage() {
               <p>
                 {formatSeconds(selectedLink.avg_elapsed_seconds)} • {selectedLink.transition_count} medições
               </p>
+              <p>Par consolidado: {canonicalLinkKey(selectedLink)}</p>
             </div>
 
             <div className="graph-scatter-panel">

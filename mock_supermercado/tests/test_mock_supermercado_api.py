@@ -10,7 +10,7 @@ def test_get_product_returns_catalog_product():
     assert response.status_code == 200
     assert response.json() == {
         "barcode": "7891000100103",
-        "name": "Requeijão Seleção 1 L",
+        "name": "Requeijão",
         "price": 42.39,
         "category": "Laticínios",
         "aisle": "F2",
@@ -23,7 +23,7 @@ def test_get_product_returns_demo_payload():
 
     assert response.status_code == 200
     assert response.json()["barcode"] == "7891000100103"
-    assert response.json()["name"] == "Requeijão Seleção 1 L"
+    assert response.json()["name"] == "Requeijão"
 
 
 def test_get_product_returns_404_when_barcode_does_not_exist():
