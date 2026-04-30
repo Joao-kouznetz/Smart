@@ -845,12 +845,30 @@ input {
   gap: 0.55rem;
 }
 
+.graph-toggle--card {
+  align-items: flex-start;
+  background: rgba(244, 247, 248, 0.9);
+  border-radius: 8px;
+  padding: 0.85rem;
+}
+
 .graph-toggle input {
   height: 1.1rem;
   width: 1.1rem;
 }
 
-.graph-rebuild-box,
+.graph-toggle--card span {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.graph-toggle--card small {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 500;
+}
+
+.graph-filters,
 .graph-stats,
 .graph-selection {
   border: 1px solid rgba(23, 32, 42, 0.1);
@@ -858,6 +876,14 @@ input {
   display: grid;
   gap: 0.85rem;
   padding: 1rem;
+}
+
+.graph-filters {
+  gap: 0.75rem;
+}
+
+.graph-filters h2 {
+  margin: 0;
 }
 
 .graph-message {
@@ -908,8 +934,49 @@ input {
   line-height: 1.45;
 }
 
-.graph-selection strong {
+.graph-selection-product {
+  background: linear-gradient(180deg, rgba(239, 125, 34, 0.12), rgba(239, 125, 34, 0.04));
+  border: 1px solid rgba(239, 125, 34, 0.22);
+  border-radius: 10px;
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.9rem;
+}
+
+.graph-selection-kicker {
+  color: #a85a15;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.graph-selection-product strong {
   font-size: 1.05rem;
+}
+
+.graph-selection-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.graph-selection-meta span {
+  background: rgba(23, 32, 42, 0.06);
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 0.3rem 0.6rem;
+}
+
+.graph-selection-links {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.graph-selection-links h3 {
+  font-size: 0.9rem;
+  margin: 0;
 }
 
 .graph-selection p {

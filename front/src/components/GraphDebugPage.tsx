@@ -1,11 +1,31 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import ForceGraph2D from "react-force-graph-2d";
 
-import { ApiError, fetchLocationGraph, rebuildLocationGraph } from "../lib/api";
+import { ApiError, fetchLocationGraph } from "../lib/api";
 import type { LocationGraphLink, LocationGraphNode, LocationGraphPayload } from "../lib/types";
+
+const AISLE_COLORS = ["#2f5d7c", "#4f86a6", "#1f8a70", "#7b5fb2", "#c16b2f", "#b23a48"];
+const CATEGORY_COLORS = ["#24516b", "#3f8c9f", "#5c7cfa", "#c77dff", "#ef7d22", "#2d6a4f"];
+const BASE_NODE_COLOR = "#2f5d7c";
+const CONNECTED_NODE_COLOR = "#1f8a70";
+const SELECTED_NODE_COLOR = "#ef7d22";
 
 function getNodeId(value: string | LocationGraphNode): string {
   return typeof value === "string" ? value : value.id;
+}
+
+function normalizeGroupValue(value?: string | null): string | null {
+  const normalized = value?.trim().toLowerCase();
+  return normalized ? normalized : null;
+}
+
+function buildColorMap(
+  nodes: LocationGraphNode[],
+  getValue: (node: LocationGraphNode) => string | null,
+  palette: string[],
+): Map<string, string> {
+  const values = Array.from(new Set(nodes.map(getValue).filter((value): value is string => Boolean(value))));
+  return new Map(values.map((value, index) => [value, palette[index % palette.length]]));
 }
 
 function formatSeconds(value: number | null | undefined): string {
@@ -31,11 +51,9 @@ export function GraphDebugPage() {
   const [graph, setGraph] = useState<LocationGraphPayload | null>(null);
   const [query, setQuery] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [startAt, setStartAt] = useState("");
-  const [temporalDecay, setTemporalDecay] = useState(false);
-  const [halfLifeDays, setHalfLifeDays] = useState(30);
+  const [colorByAisle, setColorByAisle] = useState(true);
+  const [colorByCategory, setColorByCategory] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [rebuilding, setRebuilding] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [messageTone, setMessageTone] = useState<"info" | "error" | "success">("info");
 
@@ -71,6 +89,16 @@ export function GraphDebugPage() {
     graphRef.current.d3ReheatSimulation();
   }, [graph]);
 
+  const aisleColors = useMemo(() => {
+    if (!graph) return new Map<string, string>();
+    return buildColorMap(graph.nodes, (node) => normalizeGroupValue(node.aisle), AISLE_COLORS);
+  }, [graph]);
+
+  const categoryColors = useMemo(() => {
+    if (!graph) return new Map<string, string>();
+    return buildColorMap(graph.nodes, (node) => normalizeGroupValue(node.category), CATEGORY_COLORS);
+  }, [graph]);
+
   const selectedNode = useMemo(() => {
     if (!graph || !selectedId) return null;
     return graph.nodes.find((node) => node.id === selectedId) ?? null;
@@ -92,6 +120,22 @@ export function GraphDebugPage() {
     return ids;
   }, [selectedLinks]);
 
+  function getNodeColor(node: LocationGraphNode, selected: boolean, connected: boolean): string {
+    if (selected) return SELECTED_NODE_COLOR;
+
+    if (colorByAisle) {
+      const aisle = normalizeGroupValue(node.aisle);
+      if (aisle) return aisleColors.get(aisle) ?? BASE_NODE_COLOR;
+    }
+
+    if (colorByCategory) {
+      const category = normalizeGroupValue(node.category);
+      if (category) return categoryColors.get(category) ?? BASE_NODE_COLOR;
+    }
+
+    return connected ? CONNECTED_NODE_COLOR : BASE_NODE_COLOR;
+  }
+
   function runSearch(nextQuery: string) {
     setQuery(nextQuery);
     const normalizedQuery = nextQuery.trim().toLowerCase();
@@ -106,33 +150,6 @@ export function GraphDebugPage() {
         node.name.toLowerCase().includes(normalizedQuery),
     );
     setSelectedId(match?.id ?? null);
-  }
-
-  async function handleRebuild() {
-    setRebuilding(true);
-    setMessageTone("info");
-    setMessage("Recriando grafo de localizacao...");
-    try {
-      const payload = await rebuildLocationGraph({
-        start_at: startAt.trim() || null,
-        temporal_decay: temporalDecay,
-        half_life_days: halfLifeDays,
-        decay_min_weight: 0.01,
-      });
-      setGraph(payload);
-      setSelectedId(null);
-      setMessageTone("success");
-      setMessage("Grafo recriado com sucesso.");
-    } catch (error) {
-      const detail =
-        error instanceof ApiError
-          ? error.message
-          : "Nao foi possivel recriar o grafo de localizacao.";
-      setMessageTone("error");
-      setMessage(detail);
-    } finally {
-      setRebuilding(false);
-    }
   }
 
   return (
@@ -153,42 +170,31 @@ export function GraphDebugPage() {
           />
         </label>
 
-        <div className="graph-rebuild-box">
-          <label className="graph-field">
-            <span>Treinar a partir de</span>
+        <section className="graph-filters">
+          <h2>Filtros de cor</h2>
+          <label className="graph-toggle graph-toggle--card">
             <input
-              onChange={(event) => setStartAt(event.target.value)}
-              placeholder="2026-04-01T00:00:00+00:00"
-              type="text"
-              value={startAt}
-            />
-          </label>
-          <label className="graph-toggle">
-            <input
-              checked={temporalDecay}
-              onChange={(event) => setTemporalDecay(event.target.checked)}
+              checked={colorByAisle}
+              onChange={(event) => setColorByAisle(event.target.checked)}
               type="checkbox"
             />
-            <span>Decaimento temporal</span>
+            <span>
+              <strong>Cor por corredor</strong>
+              <small>Produtos no mesmo corredor recebem a mesma cor.</small>
+            </span>
           </label>
-          <label className="graph-field">
-            <span>Meia-vida em dias</span>
+          <label className="graph-toggle graph-toggle--card">
             <input
-              min={1}
-              onChange={(event) => setHalfLifeDays(Number(event.target.value))}
-              type="number"
-              value={halfLifeDays}
+              checked={colorByCategory}
+              onChange={(event) => setColorByCategory(event.target.checked)}
+              type="checkbox"
             />
+            <span>
+              <strong>Cor por tipo</strong>
+              <small>Produtos do mesmo tipo ficam com a mesma cor.</small>
+            </span>
           </label>
-          <button
-            className="touch-button touch-button--primary"
-            disabled={rebuilding}
-            onClick={() => void handleRebuild()}
-            type="button"
-          >
-            {rebuilding ? "Recriando..." : "Recriar grafo"}
-          </button>
-        </div>
+        </section>
 
         {message ? <div className={`graph-message graph-message--${messageTone}`}>{message}</div> : null}
 
@@ -215,30 +221,38 @@ export function GraphDebugPage() {
         </section>
 
         <section className="graph-selection">
-          <h2>Produto</h2>
+          <h2>Produto selecionado</h2>
           {selectedNode ? (
             <>
-              <strong>{selectedNode.name}</strong>
-              <p>
-                Barcode {selectedNode.barcode}
-                {selectedNode.aisle ? ` • Corredor ${selectedNode.aisle}` : ""}
-              </p>
-              <div className="graph-neighbors">
-                {selectedLinks.slice(0, 8).map((link) => {
-                  const neighborId =
-                    getNodeId(link.source) === selectedNode.id
-                      ? getNodeId(link.target)
-                      : getNodeId(link.source);
-                  const neighbor = graph?.nodes.find((node) => node.id === neighborId);
-                  return (
-                    <article key={`${getNodeId(link.source)}-${getNodeId(link.target)}`}>
-                      <span>{neighbor?.name ?? neighborId}</span>
-                      <small>
-                        {formatSeconds(link.avg_elapsed_seconds)} • {link.transition_count} scans
-                      </small>
-                    </article>
-                  );
-                })}
+              <article className="graph-selection-product">
+                <p className="graph-selection-kicker">Produto em destaque</p>
+                <strong>{selectedNode.name}</strong>
+                <p>Barcode {selectedNode.barcode}</p>
+                <div className="graph-selection-meta">
+                  {selectedNode.aisle ? <span>Corredor {selectedNode.aisle}</span> : null}
+                  {selectedNode.category ? <span>Tipo {selectedNode.category}</span> : null}
+                </div>
+              </article>
+
+              <div className="graph-selection-links">
+                <h3>Links do produto</h3>
+                <div className="graph-neighbors">
+                  {selectedLinks.slice(0, 8).map((link) => {
+                    const neighborId =
+                      getNodeId(link.source) === selectedNode.id
+                        ? getNodeId(link.target)
+                        : getNodeId(link.source);
+                    const neighbor = graph?.nodes.find((node) => node.id === neighborId);
+                    return (
+                      <article key={`${getNodeId(link.source)}-${getNodeId(link.target)}`}>
+                        <span>{neighbor?.name ?? neighborId}</span>
+                        <small>
+                          {formatSeconds(link.avg_elapsed_seconds)} • {link.transition_count} scans
+                        </small>
+                      </article>
+                    );
+                  })}
+                </div>
               </div>
             </>
           ) : (
@@ -274,9 +288,10 @@ export function GraphDebugPage() {
               const selected = typedNode.id === selectedId;
               const connected = selectedNeighborIds.has(typedNode.id);
               const radius = selected ? 9 : connected ? 6 : 4.5;
+              const fillColor = getNodeColor(typedNode, selected, connected);
               ctx.beginPath();
               ctx.arc(typedNode.x, typedNode.y, radius, 0, 2 * Math.PI, false);
-              ctx.fillStyle = selected ? "#ef7d22" : connected ? "#1f8a70" : "#2f5d7c";
+              ctx.fillStyle = fillColor;
               ctx.fill();
               ctx.lineWidth = selected ? 3 : 1;
               ctx.strokeStyle = selected ? "#ffffff" : "rgba(255,255,255,0.72)";

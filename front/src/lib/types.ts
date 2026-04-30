@@ -84,13 +84,6 @@ export interface LocationGraphPayload {
   meta: Record<string, unknown>;
 }
 
-export interface LocationGraphRebuildPayload {
-  start_at?: string | null;
-  temporal_decay: boolean;
-  half_life_days: number;
-  decay_min_weight: number;
-}
-
 export interface LocationGraphNeighbor {
   barcode: string;
   name?: string | null;
