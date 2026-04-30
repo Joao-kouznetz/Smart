@@ -34,6 +34,11 @@ def main() -> None:
         default=None,
         help="Horario base ISO 8601. Ex: 2026-04-29T09:00:00+00:00.",
     )
+    parser.add_argument(
+        "--clear-existing-data",
+        action="store_true",
+        help="Apaga os dados simulados existentes antes de inserir os novos.",
+    )
 
     args = parser.parse_args()
     start_at = datetime.fromisoformat(args.start_at) if args.start_at else None
@@ -47,6 +52,7 @@ def main() -> None:
         seed=args.seed,
         start_at=start_at,
         aisle_gap_m=AISLE_GAP_METERS,
+        clear_existing_data=args.clear_existing_data,
     )
 
     print(

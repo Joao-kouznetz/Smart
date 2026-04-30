@@ -78,6 +78,7 @@ def populate_simulated_purchases(
     start_at: datetime | None = None,
     start_window_hours: int = DEFAULT_START_WINDOW_HOURS,
     aisle_gap_m: float = 4.0,
+    clear_existing_data: bool = False,
 ) -> SimulationResult:
     """Gera compras simuladas, grava os dados no banco e devolve um resumo da simulacao."""
     if people_count < 0:
@@ -90,8 +91,9 @@ def populate_simulated_purchases(
 
     database_path = db_path or get_db_path()
     with closing(_connect(database_path)) as connection:
-        with connection:
-            _clear_simulation_data(connection)
+        if clear_existing_data:
+            with connection:
+                _clear_simulation_data(connection)
 
     if people_count == 0:
         return SimulationResult(
