@@ -11,7 +11,8 @@ export default defineConfig(({ command }) => ({
       "/health": "http://127.0.0.1:8000",
       "/cart": "http://127.0.0.1:8000",
       "/products": "http://127.0.0.1:8000",
-      "/promotions": "http://127.0.0.1:8000"
+      "/promotions": "http://127.0.0.1:8000",
+      "/location-graph": "http://127.0.0.1:8000"
     }
   },
   test: {

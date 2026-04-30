@@ -1061,24 +1061,19 @@ input {
   font-weight: 700;
 }
 
+.graph-bin-label {
+  fill: rgba(23, 32, 42, 0.72);
+  font-size: 8px;
+}
+
 .graph-selection-row {
   display: grid;
   gap: 0.75rem;
 }
 
-.graph-selection--detail {
-  margin-top: 0.35rem;
-}
-
 @media (min-width: 901px) {
   .graph-selection-row {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    align-items: start;
-  }
-
-  .graph-selection,
-  .graph-selection--detail {
-    margin-top: 0;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
@@ -1113,6 +1108,16 @@ input {
   stroke: #7b5fb2;
 }
 
+.graph-threshold-label {
+  fill: #b23a48;
+  font-size: 8px;
+  font-weight: 700;
+}
+
+.graph-threshold-label--upper {
+  fill: #7b5fb2;
+}
+
 .graph-analysis {
   display: grid;
   gap: 0.35rem;
@@ -1120,6 +1125,103 @@ input {
 
 .graph-analysis p {
   margin: 0;
+}
+
+.graph-float-panel {
+  background: #ffffff;
+  border: 1px solid rgba(23, 32, 42, 0.14);
+  border-radius: 14px;
+  box-shadow: 0 18px 50px rgba(23, 32, 42, 0.22);
+  display: grid;
+  grid-template-rows: auto 1fr;
+  overflow: hidden;
+  position: fixed;
+  resize: both;
+  z-index: 20;
+}
+
+.graph-float-panel--link-detail {
+  bottom: 24px;
+  max-height: calc(100vh - 48px);
+  min-height: 420px;
+  right: 24px;
+  width: min(560px, calc(100vw - 48px));
+}
+
+.graph-float-panel--dragging {
+  box-shadow: 0 24px 56px rgba(23, 32, 42, 0.3);
+}
+
+.graph-float-panel__header {
+  align-items: center;
+  background: linear-gradient(180deg, #fff, #f6f8f9);
+  border-bottom: 1px solid rgba(23, 32, 42, 0.08);
+  cursor: grab;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.9rem 1rem;
+  user-select: none;
+}
+
+.graph-float-panel__header:active {
+  cursor: grabbing;
+}
+
+.graph-float-panel__header h2,
+.graph-float-panel__header p {
+  margin: 0;
+}
+
+.graph-float-panel__header p {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.graph-float-panel__body {
+  display: grid;
+  gap: 0.85rem;
+  overflow: auto;
+  padding: 0.9rem;
+}
+
+.graph-float-panel .graph-scatter-panel {
+  padding: 0.7rem;
+}
+
+.graph-float-panel .graph-axis-label {
+  fill: rgba(23, 32, 42, 0.72);
+  font-size: 8px;
+  font-weight: 700;
+}
+
+.graph-float-panel .graph-scatter {
+  min-height: 180px;
+}
+
+.graph-float-panel .graph-selection-product {
+  margin: 0;
+}
+
+.graph-scatter-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  font-size: 0.82rem;
+  margin-top: 0.5rem;
+}
+
+.graph-scatter-legend span {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.35rem;
+}
+
+.graph-scatter-legend i,
+.graph-scatter-legend .graph-threshold {
+  display: inline-block;
+  height: 10px;
+  width: 10px;
 }
 
 .graph-neighbors span {

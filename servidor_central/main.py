@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
 
 from servidor_central.database import init_db
 from servidor_central.routes import router
@@ -47,6 +47,13 @@ def create_app() -> FastAPI:
     @app.get("/app", include_in_schema=False)
     @app.get("/app/{full_path:path}", include_in_schema=False)
     def serve_frontend(full_path: str = "") -> FileResponse:
+        dev_server_url = os.getenv("FRONTEND_DEV_SERVER_URL")
+        if dev_server_url:
+            target = f"{dev_server_url}/app"
+            if full_path:
+                target = f"{dev_server_url}/app/{full_path}"
+            return RedirectResponse(url=target, status_code=307)
+
         dist_path = get_frontend_dist_path()
         index_path = dist_path / "index.html"
 
