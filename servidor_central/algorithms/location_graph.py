@@ -11,7 +11,6 @@ from typing import Any
 
 from servidor_central.database import get_connection, get_db_path
 
-
 DEFAULT_GRAPH_FILENAME = "location_graph.json"
 DEFAULT_HALF_LIFE_DAYS = 30.0
 DEFAULT_DECAY_MIN_WEIGHT = 0.01
@@ -29,6 +28,7 @@ class TransitionSample:
 
 
 def get_graph_path(path: Path | str | None = None) -> Path:
+    """Resolve o caminho do arquivo de cache do grafo de localizacao."""
     if path is not None:
         return Path(path)
 
@@ -40,6 +40,7 @@ def get_graph_path(path: Path | str | None = None) -> Path:
 
 
 def load_location_graph(path: Path | str | None = None) -> dict[str, Any] | None:
+    """Carrega o grafo salvo em disco, se ele existir."""
     graph_path = get_graph_path(path)
     if not graph_path.exists():
         return None
@@ -49,6 +50,7 @@ def load_location_graph(path: Path | str | None = None) -> dict[str, Any] | None
 
 
 def save_location_graph(graph: dict[str, Any], path: Path | str | None = None) -> Path:
+    """Salva o grafo em disco e retorna o caminho final."""
     graph_path = get_graph_path(path)
     graph_path.parent.mkdir(parents=True, exist_ok=True)
     with graph_path.open("w", encoding="utf-8") as graph_file:
@@ -66,6 +68,7 @@ def rebuild_location_graph(
     half_life_days: float = DEFAULT_HALF_LIFE_DAYS,
     decay_min_weight: float = DEFAULT_DECAY_MIN_WEIGHT,
 ) -> dict[str, Any]:
+    """Reconstroi o grafo de transicoes a partir do banco de dados."""
     if half_life_days <= 0:
         raise ValueError("half_life_days deve ser maior que zero.")
     if decay_min_weight < 0:
@@ -100,7 +103,10 @@ def rebuild_location_graph(
     return graph
 
 
-def find_node(graph: dict[str, Any] | None, barcode: str | None) -> dict[str, Any] | None:
+def find_node(
+    graph: dict[str, Any] | None, barcode: str | None
+) -> dict[str, Any] | None:
+    """Busca um no do grafo pelo barcode informado."""
     if not graph or not barcode:
         return None
     for node in graph.get("nodes", []):
@@ -109,7 +115,10 @@ def find_node(graph: dict[str, Any] | None, barcode: str | None) -> dict[str, An
     return None
 
 
-def get_connected_links(graph: dict[str, Any] | None, barcode: str | None) -> list[dict[str, Any]]:
+def get_connected_links(
+    graph: dict[str, Any] | None, barcode: str | None
+) -> list[dict[str, Any]]:
+    """Retorna as arestas conectadas a um barcode ordenadas por forca."""
     if not graph or not barcode:
         return []
 
@@ -127,21 +136,34 @@ def get_connected_links(graph: dict[str, Any] | None, barcode: str | None) -> li
     )
 
 
-def infer_product_position(graph: dict[str, Any] | None, barcode: str | None) -> dict[str, Any]:
+def infer_product_position(
+    graph: dict[str, Any] | None, barcode: str | None
+) -> dict[str, Any]:
+    """Infere a posicao de um produto no grafo e expõe seus vizinhos."""
     if graph is None:
         return {"algorithm_status": "cache_missing", "position": None, "neighbors": []}
 
     if not graph.get("links"):
-        return {"algorithm_status": "insufficient_data", "position": None, "neighbors": []}
+        return {
+            "algorithm_status": "insufficient_data",
+            "position": None,
+            "neighbors": [],
+        }
 
     node = find_node(graph, barcode)
     if node is None:
-        return {"algorithm_status": "product_not_in_graph", "position": None, "neighbors": []}
+        return {
+            "algorithm_status": "product_not_in_graph",
+            "position": None,
+            "neighbors": [],
+        }
 
     neighbors = []
     nodes_by_id = {item.get("id"): item for item in graph.get("nodes", [])}
     for link in get_connected_links(graph, barcode)[:10]:
-        neighbor_id = link["target"] if link.get("source") == barcode else link.get("source")
+        neighbor_id = (
+            link["target"] if link.get("source") == barcode else link.get("source")
+        )
         neighbor_node = nodes_by_id.get(neighbor_id, {})
         neighbors.append(
             {
@@ -172,6 +194,7 @@ def infer_product_position(graph: dict[str, Any] | None, barcode: str | None) ->
 
 
 def _open_connection(db_path: Path | str | None) -> sqlite3.Connection:
+    """Abre a conexao SQLite de acordo com o caminho configurado."""
     if db_path is None:
         return get_connection()
 
@@ -180,7 +203,10 @@ def _open_connection(db_path: Path | str | None) -> sqlite3.Connection:
     return connection
 
 
-def _fetch_scan_events(connection: sqlite3.Connection, *, start_at: str | None) -> list[dict[str, Any]]:
+def _fetch_scan_events(
+    connection: sqlite3.Connection, *, start_at: str | None
+) -> list[dict[str, Any]]:
+    """Carrega os eventos de leitura de itens usados para treinar o grafo."""
     params: list[Any] = []
     start_clause = ""
     if start_at:
@@ -201,25 +227,29 @@ def _fetch_scan_events(connection: sqlite3.Connection, *, start_at: str | None) 
     return [dict(row) for row in rows]
 
 
-def _fetch_product_snapshots(connection: sqlite3.Connection) -> dict[str, dict[str, Any]]:
-    rows = connection.execute(
-        """
+def _fetch_product_snapshots(
+    connection: sqlite3.Connection,
+) -> dict[str, dict[str, Any]]:
+    """Resume o estado atual dos produtos a partir dos itens do carrinho."""
+    rows = connection.execute("""
         SELECT barcode, name, category, aisle, MAX(updated_at) AS updated_at, SUM(quantity) AS quantity_sum
         FROM cart_items
         GROUP BY barcode, name, category, aisle
-        """
-    ).fetchall()
+        """).fetchall()
 
     product_map: dict[str, dict[str, Any]] = {}
     for row in rows:
         barcode = str(row["barcode"])
         current = product_map.get(barcode)
-        if current is None or str(row["updated_at"]) > str(current.get("updated_at", "")):
+        if current is None or str(row["updated_at"]) > str(
+            current.get("updated_at", "")
+        ):
             product_map[barcode] = dict(row)
     return product_map
 
 
 def _parse_datetime(value: str) -> datetime | None:
+    """Converte uma string ISO em datetime UTC, quando possivel."""
     try:
         parsed = datetime.fromisoformat(value)
     except ValueError:
@@ -238,6 +268,7 @@ def _build_transition_samples(
     half_life_days: float,
     decay_min_weight: float,
 ) -> list[TransitionSample]:
+    """Transforma as leituras por carrinho em amostras de transicao."""
     by_cart: dict[str, list[dict[str, Any]]] = defaultdict(list)
     for row in rows:
         by_cart[str(row["cart_id"])].append(row)
@@ -281,6 +312,7 @@ def _build_transition_samples(
 def _clean_transition_samples(
     samples: list[TransitionSample],
 ) -> tuple[dict[tuple[str, str], list[TransitionSample]], dict[str, Any]]:
+    """Remove amostras ruins e calcula metadados de outlier."""
     durations = [sample.elapsed_seconds for sample in samples]
     lower_threshold, outlier_meta = _calibrate_lower_threshold(durations)
 
@@ -299,7 +331,9 @@ def _clean_transition_samples(
             continue
 
         lower_cleaned = [
-            sample for sample in edge_samples if sample.elapsed_seconds >= lower_threshold
+            sample
+            for sample in edge_samples
+            if sample.elapsed_seconds >= lower_threshold
         ]
         if len(lower_cleaned) < MIN_CLEAN_EDGE_SAMPLES:
             discarded_after_lower += 1
@@ -311,7 +345,9 @@ def _clean_transition_samples(
         iqr = q3 - q1
         upper_threshold = q3 + 1.5 * iqr
         upper_cleaned = [
-            sample for sample in lower_cleaned if sample.elapsed_seconds <= upper_threshold
+            sample
+            for sample in lower_cleaned
+            if sample.elapsed_seconds <= upper_threshold
         ]
         if len(upper_cleaned) < MIN_CLEAN_EDGE_SAMPLES:
             discarded_after_upper += 1
@@ -332,6 +368,7 @@ def _clean_transition_samples(
 
 
 def _calibrate_lower_threshold(values: list[float]) -> tuple[float, dict[str, Any]]:
+    """Calcula um limiar inferior global para filtrar transicoes curtas."""
     if not values:
         return 0.0, {
             "outlier_method": "global_empty",
@@ -404,6 +441,7 @@ def _build_graph_payload(
     half_life_days: float,
     decay_min_weight: float,
 ) -> dict[str, Any]:
+    """Monta o payload final do grafo com nodos, arestas e metadados."""
     scan_counts: dict[str, int] = defaultdict(int)
     for row in rows:
         scan_counts[str(row["barcode"])] += 1
@@ -469,7 +507,9 @@ def _build_graph_payload(
             "decay_min_weight": decay_min_weight,
             "event_count": len(rows),
             "raw_transition_count": len(samples),
-            "valid_transition_count": sum(len(edge_samples) for edge_samples in cleaned_edges.values()),
+            "valid_transition_count": sum(
+                len(edge_samples) for edge_samples in cleaned_edges.values()
+            ),
             "node_count": len(nodes),
             "edge_count": len(links),
             **outlier_meta,
@@ -477,7 +517,10 @@ def _build_graph_payload(
     }
 
 
-def _apply_force_layout(nodes: list[dict[str, Any]], links: list[dict[str, Any]]) -> None:
+def _apply_force_layout(
+    nodes: list[dict[str, Any]], links: list[dict[str, Any]]
+) -> None:
+    """Distribui os nos em um layout force-directed simples."""
     if not nodes:
         return
 
@@ -512,8 +555,14 @@ def _apply_force_layout(nodes: list[dict[str, Any]], links: list[dict[str, Any]]
                 force = min(80.0 / distance_sq, 0.08)
                 jitter_x = rng.uniform(-0.001, 0.001)
                 jitter_y = rng.uniform(-0.001, 0.001)
-                positions[source] = (positions[source][0] - dx * force + jitter_x, positions[source][1] - dy * force + jitter_y)
-                positions[target] = (positions[target][0] + dx * force - jitter_x, positions[target][1] + dy * force - jitter_y)
+                positions[source] = (
+                    positions[source][0] - dx * force + jitter_x,
+                    positions[source][1] - dy * force + jitter_y,
+                )
+                positions[target] = (
+                    positions[target][0] + dx * force - jitter_x,
+                    positions[target][1] + dy * force - jitter_y,
+                )
 
         for node_id in node_ids:
             x, y = positions[node_id]
@@ -526,6 +575,7 @@ def _apply_force_layout(nodes: list[dict[str, Any]], links: list[dict[str, Any]]
 
 
 def _initial_positions(node_ids: list[str]) -> dict[str, tuple[float, float]]:
+    """Gera posicoes iniciais em circulo para o layout."""
     radius = max(120.0, len(node_ids) * 4.0)
     positions = {}
     for index, node_id in enumerate(node_ids):
@@ -535,6 +585,7 @@ def _initial_positions(node_ids: list[str]) -> dict[str, tuple[float, float]]:
 
 
 def _target_distances(links: list[dict[str, Any]]) -> dict[tuple[str, str], float]:
+    """Converte tempos medios de transicao em distancias visuais alvo."""
     if not links:
         return {}
 
@@ -561,6 +612,7 @@ def _target_distances(links: list[dict[str, Any]]) -> dict[tuple[str, str], floa
 
 
 def _percentile(values: list[float], percentile: float) -> float:
+    """Calcula um percentil linear sobre uma lista ordenada de valores."""
     if not values:
         return 0.0
     if len(values) == 1:
