@@ -20,6 +20,7 @@ MIN_CLEAN_EDGE_SAMPLES = 10
 
 @dataclass(frozen=True)
 class TransitionSample:
+    cart_id: str
     source: str
     target: str
     elapsed_seconds: float
@@ -101,6 +102,103 @@ def rebuild_location_graph(
     )
     graph["meta"]["cache_path"] = str(save_location_graph(graph, output_path))
     return graph
+
+
+def get_location_graph_link_details(
+    source: str,
+    target: str,
+    *,
+    graph: dict[str, Any] | None = None,
+    db_path: Path | str | None = None,
+) -> dict[str, Any] | None:
+    """Retorna as amostras e cortes usados para uma aresta do grafo."""
+    if graph is None:
+        graph = load_location_graph()
+    if graph is None:
+        return None
+
+    link = next(
+        (
+            item
+            for item in graph.get("links", [])
+            if item.get("source") == source and item.get("target") == target
+        ),
+        None,
+    )
+    if link is None:
+        return None
+
+    meta = graph.get("meta", {})
+    with _open_connection(db_path) as connection:
+        rows = _fetch_scan_events(connection, start_at=meta.get("start_at"))
+        product_map = _fetch_product_snapshots(connection)
+
+    samples = _build_transition_samples(
+        rows,
+        trained_at=_parse_trained_at(meta),
+        temporal_decay=bool(meta.get("temporal_decay")),
+        half_life_days=float(meta.get("half_life_days") or DEFAULT_HALF_LIFE_DAYS),
+        decay_min_weight=float(meta.get("decay_min_weight") or DEFAULT_DECAY_MIN_WEIGHT),
+    )
+    edge_samples = [
+        sample
+        for sample in samples
+        if sample.source == source and sample.target == target
+    ]
+    if not edge_samples:
+        return None
+
+    lower_threshold = float(meta.get("lower_threshold_seconds") or 0.0)
+    lower_cleaned = [sample for sample in edge_samples if sample.elapsed_seconds >= lower_threshold]
+    if lower_cleaned:
+        values = sorted(sample.elapsed_seconds for sample in lower_cleaned)
+        q1 = _percentile(values, 25)
+        q3 = _percentile(values, 75)
+        iqr = q3 - q1
+        upper_threshold = q3 + 1.5 * iqr
+        upper_cleaned = [sample for sample in lower_cleaned if sample.elapsed_seconds <= upper_threshold]
+    else:
+        upper_threshold = None
+        upper_cleaned = []
+
+    node_map = {str(node.get("id")): node for node in graph.get("nodes", [])}
+    source_node = node_map.get(source) or product_map.get(source)
+    target_node = node_map.get(target) or product_map.get(target)
+
+    return {
+        "source": source,
+        "target": target,
+        "source_node": source_node,
+        "target_node": target_node,
+        "link": link,
+        "analysis": {
+            "outlier_method": meta.get("outlier_method"),
+            "lower_threshold_seconds": lower_threshold,
+            "upper_threshold_seconds": upper_threshold,
+            "dip_p_value": meta.get("dip_p_value"),
+            "dependency_warning": meta.get("dependency_warning"),
+            "min_raw_edge_samples": meta.get("min_raw_edge_samples"),
+            "min_clean_edge_samples": meta.get("min_clean_edge_samples"),
+            "raw_sample_count": len(edge_samples),
+            "lower_cleaned_sample_count": len(lower_cleaned),
+            "upper_cleaned_sample_count": len(upper_cleaned),
+            "discarded_after_lower_threshold": len(edge_samples) - len(lower_cleaned),
+            "discarded_after_upper_threshold": len(lower_cleaned) - len(upper_cleaned),
+        },
+        "samples": [
+            {
+                "cart_id": sample.cart_id,
+                "elapsed_seconds": round(sample.elapsed_seconds, 6),
+                "transition_at": sample.transition_at.isoformat(),
+                "weight": round(sample.weight, 6),
+                "kept_after_lower": sample.elapsed_seconds >= lower_threshold,
+                "kept_after_upper": (
+                    sample.elapsed_seconds <= upper_threshold if upper_threshold is not None else sample.elapsed_seconds >= lower_threshold
+                ),
+            }
+            for sample in sorted(edge_samples, key=lambda item: item.transition_at)
+        ],
+    }
 
 
 def find_node(
@@ -299,6 +397,7 @@ def _build_transition_samples(
 
             samples.append(
                 TransitionSample(
+                    cart_id=str(previous["cart_id"]),
                     source=source,
                     target=target,
                     elapsed_seconds=elapsed_seconds,
@@ -307,6 +406,16 @@ def _build_transition_samples(
                 )
             )
     return samples
+
+
+def _parse_trained_at(meta: dict[str, Any]) -> datetime:
+    """Recupera o instante de treino do metadado salvo em disco."""
+    trained_at = meta.get("trained_at")
+    if isinstance(trained_at, str):
+        parsed = _parse_datetime(trained_at)
+        if parsed is not None:
+            return parsed
+    return datetime.now(timezone.utc)
 
 
 def _clean_transition_samples(
@@ -446,18 +555,19 @@ def _build_graph_payload(
     for row in rows:
         scan_counts[str(row["barcode"])] += 1
 
-    connected_barcodes = set()
+    grouped_samples: dict[tuple[str, str], list[TransitionSample]] = defaultdict(list)
+    for sample in samples:
+        grouped_samples[(sample.source, sample.target)].append(sample)
+
     links = []
-    for (source, target), edge_samples in cleaned_edges.items():
+    for (source, target), raw_edge_samples in grouped_samples.items():
+        edge_samples = cleaned_edges.get((source, target)) or raw_edge_samples
         elapsed_values = sorted(sample.elapsed_seconds for sample in edge_samples)
         avg_elapsed = sum(elapsed_values) / len(elapsed_values)
         transition_count = len(edge_samples)
         weighted_transition_count = sum(sample.weight for sample in edge_samples)
         p25_elapsed = _percentile(elapsed_values, 25)
         strength = weighted_transition_count / max(avg_elapsed, 1.0)
-
-        connected_barcodes.add(source)
-        connected_barcodes.add(target)
         links.append(
             {
                 "source": source,
@@ -472,7 +582,7 @@ def _build_graph_payload(
             }
         )
 
-    barcodes = sorted(connected_barcodes or scan_counts.keys())
+    barcodes = sorted(scan_counts.keys())
     nodes = []
     for barcode in barcodes:
         product = product_map.get(barcode, {})

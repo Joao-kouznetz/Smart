@@ -78,6 +78,50 @@ export interface LocationGraphLink {
   visual_distance: number;
 }
 
+export interface LocationGraphLinkNodeDetail {
+  barcode: string;
+  name?: string | null;
+  category?: string | null;
+  aisle?: string | null;
+  scan_count?: number | null;
+  x?: number | null;
+  y?: number | null;
+}
+
+export interface LocationGraphLinkSample {
+  cart_id: string;
+  elapsed_seconds: number;
+  transition_at: string;
+  weight: number;
+  kept_after_lower: boolean;
+  kept_after_upper: boolean;
+}
+
+export interface LocationGraphLinkAnalysis {
+  outlier_method?: string | null;
+  lower_threshold_seconds: number;
+  upper_threshold_seconds?: number | null;
+  dip_p_value?: number | null;
+  dependency_warning?: string | null;
+  min_raw_edge_samples?: number | null;
+  min_clean_edge_samples?: number | null;
+  raw_sample_count: number;
+  lower_cleaned_sample_count: number;
+  upper_cleaned_sample_count: number;
+  discarded_after_lower_threshold: number;
+  discarded_after_upper_threshold: number;
+}
+
+export interface LocationGraphLinkDetails {
+  source: string;
+  target: string;
+  source_node?: LocationGraphLinkNodeDetail | null;
+  target_node?: LocationGraphLinkNodeDetail | null;
+  link: LocationGraphLink;
+  analysis: LocationGraphLinkAnalysis;
+  samples: LocationGraphLinkSample[];
+}
+
 export interface LocationGraphPayload {
   nodes: LocationGraphNode[];
   links: LocationGraphLink[];
