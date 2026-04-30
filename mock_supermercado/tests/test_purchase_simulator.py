@@ -15,13 +15,13 @@ TEST_LAYOUT = {
     "A1": [
         {
             "barcode": "7891000100008",
-            "name": "Presunto Bio 1kg",
+            "name": "Presunto Natural 1 kg",
             "dist_lateral_1_m": 2.0,
             "dist_lateral_2_m": 18.0,
         },
         {
             "barcode": "7891000100022",
-            "name": "Manteiga Fazenda 1L",
+            "name": "Manteiga Artesanal 1 kg",
             "dist_lateral_1_m": 5.0,
             "dist_lateral_2_m": 15.0,
         },
@@ -29,7 +29,7 @@ TEST_LAYOUT = {
     "B1": [
         {
             "barcode": "7891000100017",
-            "name": "Óleo Bom Preço 500ml",
+            "name": "Óleo Tradicional 500 mL",
             "dist_lateral_1_m": 3.0,
             "dist_lateral_2_m": 17.0,
         },
@@ -40,16 +40,16 @@ TEST_PERSONAS = [
     {
         "name": "Persona A",
         "products": [
-            {"barcode": "7891000100008", "name": "Presunto Bio 1kg"},
-            {"barcode": "7891000100022", "name": "Manteiga Fazenda 1L"},
-            {"barcode": "7891000100017", "name": "Óleo Bom Preço 500ml"},
+            {"barcode": "7891000100008", "name": "Presunto Natural 1 kg"},
+            {"barcode": "7891000100022", "name": "Manteiga Artesanal 1 kg"},
+            {"barcode": "7891000100017", "name": "Óleo Tradicional 500 mL"},
         ],
     },
     {
         "name": "Persona B",
         "products": [
-            {"barcode": "7891000100008", "name": "Presunto Bio 1kg"},
-            {"barcode": "7891000100008", "name": "Presunto Bio 1kg"},
+            {"barcode": "7891000100008", "name": "Presunto Natural 1 kg"},
+            {"barcode": "7891000100008", "name": "Presunto Natural 1 kg"},
         ],
     },
 ]
@@ -162,8 +162,8 @@ def test_travel_time_is_distance_divided_by_fixed_walking_speed(tmp_path):
             {
                 "name": "Persona distancia",
                 "products": [
-                    {"barcode": "7891000100008", "name": "Presunto Bio 1kg"},
-                    {"barcode": "7891000100022", "name": "Manteiga Fazenda 1L"},
+                    {"barcode": "7891000100008", "name": "Presunto Natural 1 kg"},
+                    {"barcode": "7891000100022", "name": "Manteiga Artesanal 1 kg"},
                 ],
             }
         ],
