@@ -1,6 +1,8 @@
 import type {
   AddCartItemPayload,
   Cart,
+  LocationGraphPayload,
+  LocationGraphRebuildPayload,
   LocationPromotionsPayload,
   Product,
   Promotion,
@@ -82,4 +84,15 @@ export function fetchRecommendations(cartId: string): Promise<RecommendationPayl
 
 export function fetchLocationPromotions(cartId: string): Promise<LocationPromotionsPayload> {
   return requestJson<LocationPromotionsPayload>(`/cart/${cartId}/promotions/location`);
+}
+
+export function fetchLocationGraph(): Promise<LocationGraphPayload> {
+  return requestJson<LocationGraphPayload>("/location-graph");
+}
+
+export function rebuildLocationGraph(payload: LocationGraphRebuildPayload): Promise<LocationGraphPayload> {
+  return requestJson<LocationGraphPayload>("/location-graph/rebuild", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
 }

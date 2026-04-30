@@ -5,11 +5,15 @@ from servidor_central.clients.supermarket_api import (
     SupermarketAPIError,
     SupermarketAPINotFound,
 )
+from servidor_central.algorithms.location_graph import load_location_graph, rebuild_location_graph
 from servidor_central.database import get_db_path
 from servidor_central.schemas import (
     AddCartItemRequest,
     CartResponse,
     HealthResponse,
+    LocationGraphRebuildRequest,
+    LocationGraphResponse,
+    LocationResponse,
     LocationPromotionsResponse,
     ProductResponse,
     PromotionResponse,
@@ -99,3 +103,30 @@ def get_cart_recommendations(cart_id: str) -> RecommendationResponse:
 @router.get("/cart/{cart_id}/promotions/location", response_model=LocationPromotionsResponse)
 def get_cart_location_promotions(cart_id: str) -> LocationPromotionsResponse:
     return cart_service.get_cart_location_promotions(cart_id)
+
+
+@router.get("/cart/{cart_id}/location", response_model=LocationResponse)
+def get_cart_location(cart_id: str) -> LocationResponse:
+    return cart_service.get_cart_location(cart_id)
+
+
+@router.get("/location-graph", response_model=LocationGraphResponse)
+def get_location_graph() -> LocationGraphResponse:
+    graph = load_location_graph()
+    if graph is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Grafo de localizacao nao encontrado. Execute o rebuild antes de visualizar.",
+        )
+    return LocationGraphResponse(**graph)
+
+
+@router.post("/location-graph/rebuild", response_model=LocationGraphResponse)
+def post_location_graph_rebuild(payload: LocationGraphRebuildRequest) -> LocationGraphResponse:
+    graph = rebuild_location_graph(
+        start_at=payload.start_at,
+        temporal_decay=payload.temporal_decay,
+        half_life_days=payload.half_life_days,
+        decay_min_weight=payload.decay_min_weight,
+    )
+    return LocationGraphResponse(**graph)

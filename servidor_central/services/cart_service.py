@@ -4,10 +4,12 @@ from typing import Any
 from servidor_central.algorithms.location_inference import infer_location
 from servidor_central.algorithms.location_promotions import find_location_promotions
 from servidor_central.algorithms.recommendations import generate_recommendations
+from servidor_central.clients.supermarket_api import SupermarketAPIError
 from servidor_central.database import get_connection, utc_now_iso
 from servidor_central.schemas import (
     CartItemResponse,
     CartResponse,
+    LocationResponse,
     LocationPromotionsResponse,
     RecommendationResponse,
 )
@@ -122,6 +124,26 @@ def get_cart(cart_id: str) -> CartResponse:
         total_amount=total_amount,
         updated_at=str(cart_row["updated_at"]),
     )
+
+
+def get_last_added_barcode(cart_id: str) -> str | None:
+    ensure_cart_exists(cart_id)
+
+    with get_connection() as connection:
+        row = connection.execute(
+            """
+            SELECT barcode
+            FROM cart_interactions
+            WHERE cart_id = ?
+              AND event_type = 'item_added'
+              AND barcode IS NOT NULL
+            ORDER BY created_at DESC, id DESC
+            LIMIT 1
+            """,
+            (cart_id,),
+        ).fetchone()
+
+    return str(row["barcode"]) if row else None
 
 
 def add_cart_item(cart_id: str, barcode: str, quantity: int) -> CartResponse:
@@ -248,15 +270,40 @@ def delete_cart_item(cart_id: str, item_id: int) -> CartResponse:
 
 def get_cart_recommendations(cart_id: str) -> RecommendationResponse:
     cart = get_cart(cart_id)
-    all_promotions = promotion_service.get_promotions()
-    return generate_recommendations(cart, all_promotions)
+    try:
+        all_promotions = promotion_service.get_promotions()
+    except SupermarketAPIError:
+        all_promotions = []
+    return generate_recommendations(
+        cart,
+        all_promotions,
+        last_barcode=get_last_added_barcode(cart_id),
+    )
 
 
 def get_cart_location_promotions(cart_id: str) -> LocationPromotionsResponse:
     cart = get_cart(cart_id)
-    all_promotions = promotion_service.get_promotions()
-    location_result = infer_location(cart)
+    try:
+        all_promotions = promotion_service.get_promotions()
+    except SupermarketAPIError:
+        all_promotions = []
+    location_result = infer_location(cart, last_barcode=get_last_added_barcode(cart_id))
     return find_location_promotions(cart, location_result, all_promotions)
+
+
+def get_cart_location(cart_id: str) -> LocationResponse:
+    cart = get_cart(cart_id)
+    location_result = infer_location(cart, last_barcode=get_last_added_barcode(cart_id))
+    position = location_result.get("graph_position")
+    return LocationResponse(
+        cart_id=cart_id,
+        algorithm_status=location_result.get("algorithm_status", "insufficient_data"),
+        current_product_barcode=location_result.get("current_product_barcode"),
+        current_product_name=location_result.get("current_product_name"),
+        aisle=location_result.get("inferred_location"),
+        graph_position=position,
+        neighbors=location_result.get("neighbors", []),
+    )
 
 
 def checkout_cart(cart_id: str) -> CartResponse:

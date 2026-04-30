@@ -16,7 +16,7 @@ SUPERMARKET_LAYOUT = {
         },
         {
             "barcode": "7891000100022",
-            "name": "Manteiga",
+            "name": "Manteiga sem sal",
             "dist_lateral_1_m": 5.0,
             "dist_lateral_2_m": 15.0,
         },
@@ -74,7 +74,7 @@ SUPERMARKET_LAYOUT = {
     "B1": [
         {
             "barcode": "7891000100017",
-            "name": "Óleo de Girasol",
+            "name": "Óleo de girasol",
             "dist_lateral_1_m": 3.0,
             "dist_lateral_2_m": 17.0,
         },
@@ -106,7 +106,7 @@ SUPERMARKET_LAYOUT = {
     "B2": [
         {
             "barcode": "7891000100009",
-            "name": "Torrada",
+            "name": "Torrada Tradicional",
             "dist_lateral_1_m": 2.0,
             "dist_lateral_2_m": 18.0,
         },
@@ -124,7 +124,7 @@ SUPERMARKET_LAYOUT = {
         },
         {
             "barcode": "7891000100030",
-            "name": "Cenoura",
+            "name": "Cenoura Organica",
             "dist_lateral_1_m": 14.0,
             "dist_lateral_2_m": 6.0,
         },
@@ -138,7 +138,7 @@ SUPERMARKET_LAYOUT = {
     "C1": [
         {
             "barcode": "7891000100003",
-            "name": "Cerveja",
+            "name": "Cerveja Artesanal",
             "dist_lateral_1_m": 2.0,
             "dist_lateral_2_m": 18.0,
         },
@@ -150,7 +150,7 @@ SUPERMARKET_LAYOUT = {
         },
         {
             "barcode": "7891000100046",
-            "name": "Sabão em Pó",
+            "name": "Sabão em Pó ",
             "dist_lateral_1_m": 10.0,
             "dist_lateral_2_m": 10.0,
         },
@@ -188,7 +188,7 @@ SUPERMARKET_LAYOUT = {
         },
         {
             "barcode": "7891000100048",
-            "name": "Sabonete",
+            "name": "Sabonete ",
             "dist_lateral_1_m": 16.0,
             "dist_lateral_2_m": 4.0,
         },
@@ -220,7 +220,7 @@ SUPERMARKET_LAYOUT = {
         },
         {
             "barcode": "7891000100069",
-            "name": "Refrigerante",
+            "name": "Refrigerante Cola ",
             "dist_lateral_1_m": 18.0,
             "dist_lateral_2_m": 2.0,
         },
@@ -260,7 +260,7 @@ SUPERMARKET_LAYOUT = {
     "E1": [
         {
             "barcode": "7891000100007",
-            "name": "Leite",
+            "name": "Leite Integral",
             "dist_lateral_1_m": 2.0,
             "dist_lateral_2_m": 18.0,
         },
@@ -284,7 +284,7 @@ SUPERMARKET_LAYOUT = {
         },
         {
             "barcode": "7891000100068",
-            "name": "Biscoito",
+            "name": "Biscoito Recheado",
             "dist_lateral_1_m": 17.0,
             "dist_lateral_2_m": 3.0,
         },
@@ -298,7 +298,7 @@ SUPERMARKET_LAYOUT = {
         },
         {
             "barcode": "7891000100001",
-            "name": "Frango Inteiro",
+            "name": "Frango Inteiro ",
             "dist_lateral_1_m": 7.0,
             "dist_lateral_2_m": 13.0,
         },
@@ -336,7 +336,7 @@ SUPERMARKET_LAYOUT = {
         },
         {
             "barcode": "7891000100057",
-            "name": "Frango Inteiro",
+            "name": "Frango Inteiro ",
             "dist_lateral_1_m": 10.0,
             "dist_lateral_2_m": 10.0,
         },
