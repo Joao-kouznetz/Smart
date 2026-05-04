@@ -9,3 +9,4 @@ front/vite.config.js
 front/vite.config.d.ts
 servidor_central/location_graph.json
 *.db
+servidor_central/smart_cart.db
