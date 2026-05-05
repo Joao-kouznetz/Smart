@@ -2,6 +2,7 @@ import json
 from typing import Any
 
 from servidor_central.algorithms.location_inference import infer_location
+from servidor_central.algorithms.location_graph import find_node, get_nearby_products, load_location_graph
 from servidor_central.algorithms.location_promotions import find_location_promotions
 from servidor_central.algorithms.recommendations import generate_recommendations
 from servidor_central.clients.supermarket_api import SupermarketAPIError
@@ -9,6 +10,8 @@ from servidor_central.database import get_connection, utc_now_iso
 from servidor_central.schemas import (
     CartItemResponse,
     CartResponse,
+    LocationCurrentProductResponse,
+    LocationNearbyProductResponse,
     LocationResponse,
     LocationPromotionsResponse,
     RecommendationResponse,
@@ -291,18 +294,41 @@ def get_cart_location_promotions(cart_id: str) -> LocationPromotionsResponse:
     return find_location_promotions(cart, location_result, all_promotions)
 
 
-def get_cart_location(cart_id: str) -> LocationResponse:
-    cart = get_cart(cart_id)
-    location_result = infer_location(cart, last_barcode=get_last_added_barcode(cart_id))
-    position = location_result.get("graph_position")
+def get_cart_location(cart_id: str, *, limit: int = 10) -> LocationResponse:
+    get_cart(cart_id)
+    last_barcode = get_last_added_barcode(cart_id)
+    graph = load_location_graph()
+
+    if graph is None:
+        return LocationResponse(cart_id=cart_id, algorithm_status="cache_missing")
+
+    if not graph.get("links"):
+        return LocationResponse(cart_id=cart_id, algorithm_status="insufficient_data")
+
+    if not last_barcode:
+        return LocationResponse(cart_id=cart_id, algorithm_status="insufficient_data")
+
+    current_node = find_node(graph, last_barcode)
+    if current_node is None:
+        return LocationResponse(cart_id=cart_id, algorithm_status="product_not_in_graph")
+
+    current_product = LocationCurrentProductResponse(
+        barcode=str(current_node.get("id")),
+        name=current_node.get("name"),
+        category=current_node.get("category"),
+        aisle=current_node.get("aisle"),
+        scan_count=current_node.get("scan_count"),
+    )
+    nearby_products = [
+        LocationNearbyProductResponse(**product)
+        for product in get_nearby_products(graph, last_barcode, limit=limit)
+    ]
+
     return LocationResponse(
         cart_id=cart_id,
-        algorithm_status=location_result.get("algorithm_status", "insufficient_data"),
-        current_product_barcode=location_result.get("current_product_barcode"),
-        current_product_name=location_result.get("current_product_name"),
-        aisle=location_result.get("inferred_location"),
-        graph_position=position,
-        neighbors=location_result.get("neighbors", []),
+        algorithm_status="ready",
+        current_product=current_product,
+        nearby_products=nearby_products,
     )
 
 

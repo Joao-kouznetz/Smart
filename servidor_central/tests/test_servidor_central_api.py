@@ -8,10 +8,11 @@ from fastapi.testclient import TestClient
 
 from servidor_central.clients import supermarket_api
 from servidor_central.clients.supermarket_api import SupermarketAPIError, SupermarketAPINotFound
+from servidor_central.algorithms import location_graph
 from servidor_central.database import init_db
 from servidor_central.main import create_app
 from servidor_central.schemas import ProductResponse
-from servidor_central.services import catalog_service, promotion_service
+from servidor_central.services import cart_service, catalog_service, promotion_service
 
 
 @pytest.fixture()
@@ -310,6 +311,7 @@ def test_get_product_not_found_returns_404(client, monkeypatch):
 def test_algorithm_endpoints_return_graph_status_payloads(client):
     recommendations_response = client.get("/cart/cart-4/recommendations")
     location_promotions_response = client.get("/cart/cart-4/promotions/location")
+    location_response = client.get("/cart/cart-4/location")
 
     assert recommendations_response.status_code == 200
     recommendations_payload = recommendations_response.json()
@@ -324,6 +326,76 @@ def test_algorithm_endpoints_return_graph_status_payloads(client):
     assert location_payload["inferred_location"] is None
     assert location_payload["graph_position"] is None
     assert location_payload["promotions"] == []
+
+    assert location_response.status_code == 200
+    location_payload = location_response.json()
+    assert location_payload["cart_id"] == "cart-4"
+    assert location_payload["algorithm_status"] == "cache_missing"
+    assert location_payload["current_product"] is None
+    assert location_payload["nearby_products"] == []
+
+
+def test_get_cart_location_returns_current_product_and_nearby_products_sorted(client, monkeypatch):
+    graph = {
+        "nodes": [
+            {"id": "a", "name": "Produto A", "category": "Cat", "aisle": "A1", "scan_count": 5},
+            {"id": "b", "name": "Produto B", "category": "Cat", "aisle": "A2", "scan_count": 4},
+            {"id": "c", "name": "Produto C", "category": "Cat", "aisle": "A3", "scan_count": 3},
+            {"id": "d", "name": "Produto D", "category": "Cat", "aisle": "A4", "scan_count": 2},
+        ],
+        "links": [
+            {"source": "b", "target": "a", "avg_elapsed_seconds": 5.0, "transition_count": 10, "strength": 0.9},
+            {"source": "b", "target": "c", "avg_elapsed_seconds": 5.0, "transition_count": 8, "strength": 0.8},
+            {"source": "b", "target": "d", "avg_elapsed_seconds": 2.0, "transition_count": 12, "strength": 0.7},
+        ],
+    }
+
+    monkeypatch.setattr(cart_service, "load_location_graph", lambda: graph)
+    monkeypatch.setattr(cart_service, "get_last_added_barcode", lambda _cart_id: "b")
+
+    client.post("/cart/cart-5/items", json={"barcode": "a", "quantity": 1})
+
+    response = client.get("/cart/cart-5/location", params={"limit": 2})
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["algorithm_status"] == "ready"
+    assert payload["current_product"] == {
+        "barcode": "b",
+        "name": "Produto B",
+        "category": "Cat",
+        "aisle": "A2",
+        "scan_count": 4,
+    }
+    assert [item["barcode"] for item in payload["nearby_products"]] == ["d", "a"]
+    assert payload["nearby_products"][0]["avg_elapsed_seconds"] == 2.0
+    assert payload["nearby_products"][1]["avg_elapsed_seconds"] == 5.0
+    assert len(payload["nearby_products"]) == 2
+
+
+def test_get_cart_location_uses_name_as_tiebreaker(client, monkeypatch):
+    graph = {
+        "nodes": [
+            {"id": "a", "name": "Produto A", "category": "Cat", "aisle": "A1", "scan_count": 5},
+            {"id": "b", "name": "Banana", "category": "Cat", "aisle": "A2", "scan_count": 4},
+            {"id": "c", "name": "Abacaxi", "category": "Cat", "aisle": "A3", "scan_count": 3},
+        ],
+        "links": [
+            {"source": "b", "target": "c", "avg_elapsed_seconds": 5.0, "transition_count": 10, "strength": 0.9},
+            {"source": "b", "target": "a", "avg_elapsed_seconds": 5.0, "transition_count": 8, "strength": 0.8},
+        ],
+    }
+
+    monkeypatch.setattr(cart_service, "load_location_graph", lambda: graph)
+    monkeypatch.setattr(cart_service, "get_last_added_barcode", lambda _cart_id: "b")
+
+    client.post("/cart/cart-6/items", json={"barcode": "a", "quantity": 1})
+
+    response = client.get("/cart/cart-6/location", params={"limit": 10})
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert [item["barcode"] for item in payload["nearby_products"]] == ["c", "a"]
 
 
 def test_servidor_central_uses_mocked_http_request_for_catalog(client, mock_supermarket_request):

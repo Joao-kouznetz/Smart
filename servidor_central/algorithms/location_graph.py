@@ -211,6 +211,74 @@ def get_connected_links(
     )
 
 
+def get_nearby_products(
+    graph: dict[str, Any] | None,
+    barcode: str | None,
+    *,
+    limit: int = 10,
+) -> list[dict[str, Any]]:
+    if not graph or not barcode or limit <= 0:
+        return []
+
+    node = find_node(graph, barcode)
+    if node is None:
+        return []
+
+    nodes_by_id = {item.get("id"): item for item in graph.get("nodes", [])}
+    nearby_products_by_barcode: dict[str, dict[str, Any]] = {}
+
+    for link in graph.get("links", []):
+        if link.get("source") == barcode:
+            neighbor_id = link.get("target")
+        elif link.get("target") == barcode:
+            neighbor_id = link.get("source")
+        else:
+            continue
+
+        if neighbor_id is None:
+            continue
+
+        neighbor_barcode = str(neighbor_id)
+        neighbor_node = nodes_by_id.get(neighbor_id, {})
+        current_item = {
+            "barcode": neighbor_barcode,
+            "name": neighbor_node.get("name"),
+            "category": neighbor_node.get("category"),
+            "aisle": neighbor_node.get("aisle"),
+            "scan_count": neighbor_node.get("scan_count"),
+            "avg_elapsed_seconds": link.get("avg_elapsed_seconds"),
+            "transition_count": link.get("transition_count"),
+            "strength": link.get("strength"),
+        }
+
+        previous_item = nearby_products_by_barcode.get(neighbor_barcode)
+        if previous_item is None:
+            nearby_products_by_barcode[neighbor_barcode] = current_item
+            continue
+
+        current_score = (
+            float(current_item.get("avg_elapsed_seconds") or math.inf),
+            str(current_item.get("name") or ""),
+            neighbor_barcode,
+        )
+        previous_score = (
+            float(previous_item.get("avg_elapsed_seconds") or math.inf),
+            str(previous_item.get("name") or ""),
+            neighbor_barcode,
+        )
+        if current_score < previous_score:
+            nearby_products_by_barcode[neighbor_barcode] = current_item
+
+    return sorted(
+        nearby_products_by_barcode.values(),
+        key=lambda item: (
+            float(item.get("avg_elapsed_seconds") or math.inf),
+            str(item.get("name") or ""),
+            str(item.get("barcode") or ""),
+        ),
+    )[:limit]
+
+
 def infer_product_position(
     graph: dict[str, Any] | None, barcode: str | None
 ) -> dict[str, Any]:

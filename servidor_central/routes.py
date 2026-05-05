@@ -107,8 +107,8 @@ def get_cart_location_promotions(cart_id: str) -> LocationPromotionsResponse:
 
 
 @router.get("/cart/{cart_id}/location", response_model=LocationResponse)
-def get_cart_location(cart_id: str) -> LocationResponse:
-    return cart_service.get_cart_location(cart_id)
+def get_cart_location(cart_id: str, limit: int = 10) -> LocationResponse:
+    return cart_service.get_cart_location(cart_id, limit=limit)
 
 
 @router.get("/location-graph", response_model=LocationGraphResponse)

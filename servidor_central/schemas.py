@@ -62,14 +62,30 @@ class LocationPromotionsResponse(BaseModel):
     promotions: list[PromotionResponse]
 
 
+class LocationCurrentProductResponse(BaseModel):
+    barcode: str
+    name: str | None = None
+    category: str | None = None
+    aisle: str | None = None
+    scan_count: int | None = None
+
+
+class LocationNearbyProductResponse(BaseModel):
+    barcode: str
+    name: str | None = None
+    category: str | None = None
+    aisle: str | None = None
+    scan_count: int | None = None
+    avg_elapsed_seconds: float | None = None
+    transition_count: int | None = None
+    strength: float | None = None
+
+
 class LocationResponse(BaseModel):
     cart_id: str
     algorithm_status: Literal["ready", "insufficient_data", "cache_missing", "product_not_in_graph"]
-    current_product_barcode: str | None = None
-    current_product_name: str | None = None
-    aisle: str | None = None
-    graph_position: dict[str, Any] | None = None
-    neighbors: list[dict[str, Any]] = Field(default_factory=list)
+    current_product: LocationCurrentProductResponse | None = None
+    nearby_products: list[LocationNearbyProductResponse] = Field(default_factory=list)
 
 
 class LocationGraphRebuildRequest(BaseModel):
