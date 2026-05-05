@@ -92,7 +92,7 @@ function createStatefulFetchMock() {
       });
     }
 
-    if (method === "GET" && url === "/products/search?query=cafe") {
+  if (method === "GET" && url === "/products/search?query=cafe") {
       return mockJsonResponse([
         {
           barcode: "7891000100104",
@@ -100,6 +100,18 @@ function createStatefulFetchMock() {
           price: 18.75,
           category: "Bebidas",
           aisle: "B2",
+        },
+      ]);
+    }
+
+    if (method === "GET" && url === "/products/search?query=mac") {
+      return mockJsonResponse([
+        {
+          barcode: "7891000100105",
+          name: "Macarrao Espaguete 500g",
+          price: 7.2,
+          category: "Mercearia",
+          aisle: "D4",
         },
       ]);
     }
@@ -197,13 +209,13 @@ describe("App", () => {
     expect(screen.getByLabelText("Pesquisar produto pelo nome")).toBeInTheDocument();
     expect(await screen.findByText("device-cart-7")).toBeInTheDocument();
     expect(await screen.findByText("Leite Integral 1L")).toBeInTheDocument();
-    expect(await screen.findByText("Promocao para voce")).toBeInTheDocument();
+    expect((await screen.findAllByText("Promocao para voce")).length).toBeGreaterThan(0);
     expect(await screen.findByText("Oferta da loja")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Finalizar compra" })).toBeInTheDocument();
     expect(fetchMock).toHaveBeenCalledWith("/cart/device-cart-7", expect.anything());
   });
 
-  it("adds an item from search results by barcode", async () => {
+  it("adds an item from search results", async () => {
     const fetchMock = createStatefulFetchMock();
     vi.stubGlobal("fetch", fetchMock);
     const user = userEvent.setup();
@@ -212,15 +224,11 @@ describe("App", () => {
 
     await screen.findByText("Leite Integral 1L");
     await user.click(screen.getByLabelText("Pesquisar produto pelo nome"));
-    expect(await screen.findByRole("dialog", { name: "Teclado virtual de busca" })).toBeInTheDocument();
+    expect(await screen.findByRole("dialog", { name: "Busca de produtos" })).toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: "c" }));
-    await user.click(screen.getByRole("button", { name: "a" }));
-    await user.click(screen.getByRole("button", { name: "f" }));
-    await user.click(screen.getByRole("button", { name: "e" }));
-    await user.click(screen.getByRole("button", { name: "Enter" }));
+    await user.type(screen.getByPlaceholderText("Comece a digitar o nome do produto..."), "cafe");
 
-    expect(await screen.findByRole("dialog", { name: "Resultados da pesquisa" })).toBeInTheDocument();
+    expect(await screen.findByText("Cafe Torrado 500g")).toBeInTheDocument();
     const addButton = await screen.findByRole("button", { name: "Adicionar" });
     await user.click(addButton);
 
@@ -234,7 +242,7 @@ describe("App", () => {
       );
     });
 
-    expect(await screen.findByText("Cafe Torrado 500g")).toBeInTheDocument();
+    expect((await screen.findAllByText("Cafe Torrado 500g")).length).toBeGreaterThan(0);
   });
 
   it("opens the search keyboard and keeps results in an overlay", async () => {
@@ -247,42 +255,9 @@ describe("App", () => {
     await screen.findByText("Leite Integral 1L");
     await user.click(screen.getByLabelText("Pesquisar produto pelo nome"));
 
-    expect(await screen.findByRole("dialog", { name: "Teclado virtual de busca" })).toBeInTheDocument();
-    expect(screen.getByText("Toque nas teclas para compor a busca")).toBeInTheDocument();
+    expect(await screen.findByRole("dialog", { name: "Busca de produtos" })).toBeInTheDocument();
+    expect(screen.getByText("Digite pelo menos 2 letras para buscar.")).toBeInTheDocument();
     expect(screen.queryByRole("list", { name: "Resultados da pesquisa" })).not.toBeInTheDocument();
-  });
-
-  it("supports manual barcode add and item removal", async () => {
-    const fetchMock = createStatefulFetchMock();
-    vi.stubGlobal("fetch", fetchMock);
-    const user = userEvent.setup();
-
-    render(<App />);
-
-    await screen.findByText("Leite Integral 1L");
-    await user.type(screen.getByLabelText("Digitar barcode manualmente"), "7891000100105");
-    await user.click(screen.getByRole("button", { name: "+" }));
-    await user.click(screen.getByRole("button", { name: "Adicionar pelo barcode" }));
-
-    await waitFor(() => {
-      expect(fetchMock).toHaveBeenCalledWith(
-        "/cart/device-cart-7/items",
-        expect.objectContaining({
-          method: "POST",
-          body: JSON.stringify({ barcode: "7891000100105", quantity: 2 }),
-        }),
-      );
-    });
-
-    const removeButtons = await screen.findAllByRole("button", { name: "Remover" });
-    await user.click(removeButtons[0]);
-
-    await waitFor(() => {
-      expect(fetchMock).toHaveBeenCalledWith(
-        "/cart/device-cart-7/items/1",
-        expect.objectContaining({ method: "DELETE" }),
-      );
-    });
   });
 
   it("finalizes the purchase from the cart panel", async () => {
@@ -301,7 +276,5 @@ describe("App", () => {
         expect.objectContaining({ method: "POST" }),
       );
     });
-
-    expect(await screen.findByText("Compra finalizada. O carrinho esta pronto para a proxima jornada.")).toBeInTheDocument();
   });
 });

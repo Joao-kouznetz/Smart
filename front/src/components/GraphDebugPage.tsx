@@ -39,6 +39,23 @@ function formatSeconds(value: number | null | undefined): string {
   return `${(value / 60).toFixed(1)}min`;
 }
 
+function formatSampleCount(value: number | null | undefined): string {
+  if (value == null) return "-";
+  return `${value} amostras`;
+}
+
+function getLinkSampleCount(link: LocationGraphLink): number | null {
+  return link.analysis?.sample_count_initial ?? null;
+}
+
+function getLinkFinalSampleCount(link: LocationGraphLink | LocationGraphLinkDetails): number | null {
+  if ("transition_count" in link) {
+    return link.analysis?.sample_count_final ?? link.transition_count;
+  }
+
+  return link.analysis.sample_count_final ?? link.link.transition_count;
+}
+
 function nodeLabel(node: LocationGraphNode): string {
   return `${node.name}\nBarcode ${node.barcode}${node.aisle ? `\nCorredor ${node.aisle}` : ""}`;
 }
@@ -48,7 +65,7 @@ function linkLabel(link: LocationGraphLink): string {
   return [
     `${getNodeId(link.source)} -> ${getNodeId(link.target)}`,
     `Tempo medio: ${formatSeconds(link.avg_elapsed_seconds)}`,
-    `Transicoes: ${link.transition_count}`,
+    `Amostras: ${formatSampleCount(getLinkFinalSampleCount(link))}`,
     analysis?.branch ? `Branch: ${analysis.branch}` : null,
     analysis?.decision ? `Decisao: ${analysis.decision}` : null,
   ]
@@ -359,36 +376,6 @@ export function GraphDebugPage() {
 
         {message ? <div className={`graph-message graph-message--${messageTone}`}>{message}</div> : null}
 
-        <section className="graph-stats">
-          <h2>Treino</h2>
-          <dl>
-            <div>
-              <dt>Nós</dt>
-              <dd>{graph?.meta.node_count as number | undefined ?? "-"}</dd>
-            </div>
-            <div>
-              <dt>Arestas</dt>
-              <dd>{graph?.meta.edge_count as number | undefined ?? "-"}</dd>
-            </div>
-            <div>
-              <dt>Arestas mantidas</dt>
-              <dd>{graph?.meta.kept_link_count as number | undefined ?? "-"}</dd>
-            </div>
-            <div>
-              <dt>Mediana</dt>
-              <dd>{graph?.meta.median_link_count as number | undefined ?? "-"}</dd>
-            </div>
-            <div>
-              <dt>KDE</dt>
-              <dd>{graph?.meta.kde_link_count as number | undefined ?? "-"}</dd>
-            </div>
-            <div>
-              <dt>Fallback</dt>
-              <dd>{graph?.meta.fallback_link_count as number | undefined ?? "-"}</dd>
-            </div>
-          </dl>
-        </section>
-
         <section className="graph-selection">
           <h2>Produto selecionado</h2>
           {selectedNode ? (
@@ -421,7 +408,7 @@ export function GraphDebugPage() {
                       >
                         <span>{neighbor?.name ?? neighborId}</span>
                         <small>
-                          {sourceId} → {targetId} • {formatSeconds(link.avg_elapsed_seconds)} • {link.transition_count} scans
+                          {sourceId} → {targetId} • {formatSeconds(link.avg_elapsed_seconds)} • {formatSampleCount(getLinkSampleCount(link))}
                         </small>
                       </button>
                     );
@@ -467,7 +454,7 @@ export function GraphDebugPage() {
                 {getNodeId(selectedLink.source)} → {getNodeId(selectedLink.target)}
               </strong>
               <p>
-                {formatSeconds(selectedLink.avg_elapsed_seconds)} • {selectedLink.transition_count} medições
+                {formatSeconds(selectedLink.avg_elapsed_seconds)} • {formatSampleCount(linkDetails.analysis.sample_count_initial)} observadas • {formatSampleCount(getLinkFinalSampleCount(linkDetails))} no cálculo
               </p>
               <p>Par consolidado: {canonicalLinkKey(selectedLink)}</p>
             </div>
@@ -562,6 +549,8 @@ export function GraphDebugPage() {
               </div>
             </div>
 
+            {linkLoading ? <p>Carregando detalhe do link...</p> : null}
+
             <div className="graph-analysis">
               <p>
                 Metodo: <strong>{analysisTitle}</strong>
@@ -573,7 +562,10 @@ export function GraphDebugPage() {
                 ) : null}
               </p>
               <p>
-                Amostras: {linkDetails.analysis.raw_sample_count} brutas, {linkDetails.analysis.lower_cleaned_sample_count} apos lower, {linkDetails.analysis.upper_cleaned_sample_count} apos upper.
+                Amostras observadas: {linkDetails.analysis.sample_count_initial}.
+              </p>
+              <p>
+                Amostras no cálculo: {linkDetails.analysis.sample_count_final}.
               </p>
               <p>
                 Cortes: {linkDetails.analysis.discarded_after_lower_threshold} removidas no lower, {linkDetails.analysis.discarded_after_upper_threshold} no upper.
@@ -589,9 +581,6 @@ export function GraphDebugPage() {
               {linkDetails.analysis.formula_weight ? <p>Peso: {linkDetails.analysis.formula_weight}</p> : null}
               {linkDetails.analysis.dip_p_value != null ? <p>Dip test p-value: {linkDetails.analysis.dip_p_value.toFixed(4)}</p> : null}
               {linkDetails.analysis.dependency_warning ? <p>{linkDetails.analysis.dependency_warning}</p> : null}
-              <p>
-                {linkDetails.analysis.sample_count_initial} amostras iniciais, {linkDetails.analysis.sample_count_after_lower} apos lower, {linkDetails.analysis.sample_count_after_upper} apos upper.
-              </p>
               {linkDetails.analysis.discard_reason ? <p>Link descartado: {linkDetails.analysis.discard_reason}</p> : null}
             </div>
 
