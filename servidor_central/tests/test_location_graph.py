@@ -1,7 +1,10 @@
 import sqlite3
 from datetime import datetime, timedelta, timezone
 
-from servidor_central.algorithms.location_graph import rebuild_location_graph
+from servidor_central.algorithms.location_graph import (
+    get_location_graph_link_details,
+    rebuild_location_graph,
+)
 from servidor_central.database import init_db
 
 
@@ -229,3 +232,53 @@ def test_rebuild_location_graph_merges_bidirectional_links(tmp_path, monkeypatch
     assert link["analysis"]["sample_count_initial"] == 20
     assert link["analysis"]["sample_count_final"] == 20
     assert link["analysis"]["branch"] == "fallback_log_iqr"
+
+
+def test_get_location_graph_link_details_is_orientation_agnostic(tmp_path, monkeypatch):
+    db_path = tmp_path / "smart_cart.db"
+    graph_path = tmp_path / "location_graph.json"
+    monkeypatch.setenv("SMART_CART_DB_PATH", str(db_path))
+    monkeypatch.setenv("SMART_CART_LOCATION_GRAPH_PATH", str(graph_path))
+    init_db()
+
+    base_at = datetime(2026, 4, 1, 10, 0, tzinfo=timezone.utc)
+    with sqlite3.connect(db_path) as connection:
+        for index in range(16):
+            cart_id = f"cart-{index}"
+            start_at = base_at + timedelta(minutes=index)
+            connection.execute(
+                "INSERT INTO carts (id, created_at, updated_at) VALUES (?, ?, ?)",
+                (cart_id, start_at.isoformat(), start_at.isoformat()),
+            )
+            connection.execute(
+                """
+                INSERT INTO cart_items (
+                    cart_id, barcode, quantity, name, price, category, aisle, created_at, updated_at
+                ) VALUES (?, ?, 1, ?, 1.0, 'Categoria', 'A1', ?, ?)
+                """,
+                (cart_id, "az", "Azeite", start_at.isoformat(), start_at.isoformat()),
+            )
+            connection.execute(
+                """
+                INSERT INTO cart_items (
+                    cart_id, barcode, quantity, name, price, category, aisle, created_at, updated_at
+                ) VALUES (?, ?, 1, ?, 1.0, 'Categoria', 'B1', ?, ?)
+                """,
+                (cart_id, "su", "Suco", start_at.isoformat(), start_at.isoformat()),
+            )
+            connection.execute(
+                "INSERT INTO cart_interactions (cart_id, event_type, barcode, payload_json, created_at) VALUES (?, 'item_added', 'az', NULL, ?)",
+                (cart_id, start_at.isoformat()),
+            )
+            connection.execute(
+                "INSERT INTO cart_interactions (cart_id, event_type, barcode, payload_json, created_at) VALUES (?, 'item_added', 'su', NULL, ?)",
+                (cart_id, (start_at + timedelta(seconds=10)).isoformat()),
+            )
+
+    graph = rebuild_location_graph()
+    details_forward = get_location_graph_link_details("az", "su", graph=graph)
+    details_reverse = get_location_graph_link_details("su", "az", graph=graph)
+
+    assert details_forward is not None
+    assert details_reverse is not None
+    assert details_forward["link"]["avg_elapsed_seconds"] == details_reverse["link"]["avg_elapsed_seconds"]

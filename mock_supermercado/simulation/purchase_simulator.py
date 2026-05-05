@@ -6,6 +6,7 @@ from collections import Counter
 from contextlib import closing
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
+import re
 from pathlib import Path
 from typing import Any
 
@@ -15,6 +16,9 @@ from servidor_central.database import SCHEMA_SQL, get_db_path
 WALKING_SPEED_KMH = 5.0
 WALKING_SPEED_MPS = WALKING_SPEED_KMH * 1000 / 3600
 DEFAULT_START_WINDOW_HOURS = 10
+AISLE_LENGTH_M = 20.0
+AISLE_GAP_M = 1.0
+GONDOLA_WIDTH_M = 1.0
 
 
 class SimulationConfigError(ValueError):
@@ -35,9 +39,7 @@ class ProductLocation:
     barcode: str
     name: str
     aisle: str
-    aisle_index: int
-    dist_lateral_1_m: float
-    dist_lateral_2_m: float
+    dist_to_aisle_m: float
 
 
 def distance_between_products(
@@ -45,7 +47,9 @@ def distance_between_products(
     barcode_b: str,
     supermarket_layout: dict[str, list[dict[str, Any]]],
     *,
-    aisle_gap_m: float = 4.0,
+    aisle_gap_m: float = AISLE_GAP_M,
+    aisle_length_m: float = AISLE_LENGTH_M,
+    gondola_width_m: float = GONDOLA_WIDTH_M,
 ) -> float:
     """Calcula a distancia estimada entre dois produtos no layout do supermercado."""
     locations = _build_location_index(supermarket_layout)
@@ -53,16 +57,46 @@ def distance_between_products(
     product_b = _get_location(locations, barcode_b)
 
     if product_a.aisle == product_b.aisle:
-        return abs(product_a.dist_lateral_1_m - product_b.dist_lateral_1_m)
+        return abs(product_a.dist_to_aisle_m - product_b.dist_to_aisle_m)
 
-    aisle_distance_m = abs(product_a.aisle_index - product_b.aisle_index) * aisle_gap_m
-    route_from_lateral_1 = (
-        product_a.dist_lateral_1_m + aisle_distance_m + product_b.dist_lateral_1_m
+    row_a, col_a = _parse_aisle_position(product_a.aisle)
+    row_b, col_b = _parse_aisle_position(product_b.aisle)
+    column_step = 1.0 if col_a != col_b else 0.0
+
+    if row_a == row_b:
+        return column_step * aisle_gap_m
+
+    route_same_side = product_a.dist_to_aisle_m + product_b.dist_to_aisle_m
+    route_other_side = abs(aisle_length_m - product_a.dist_to_aisle_m) + abs(
+        aisle_length_m - product_b.dist_to_aisle_m
     )
-    route_from_lateral_2 = (
-        product_a.dist_lateral_2_m + aisle_distance_m + product_b.dist_lateral_2_m
-    )
-    return (route_from_lateral_1 + route_from_lateral_2) / 2
+    base_distance = min(route_same_side, route_other_side)
+    row_distance = abs(row_a - row_b) * (aisle_gap_m + gondola_width_m)
+    column_distance = column_step * aisle_gap_m
+    return base_distance + row_distance + column_distance
+
+
+def example_distance_between_products_calls(
+    supermarket_layout: dict[str, list[dict[str, Any]]],
+) -> dict[str, float]:
+    """Executa as chamadas solicitadas de distance_between_products."""
+    return {
+        "7891000100003_7891000100026": distance_between_products(
+            "7891000100003",
+            "7891000100026",
+            supermarket_layout,
+        ),
+        "7891000100003_7891000100048": distance_between_products(
+            "7891000100003",
+            "7891000100048",
+            supermarket_layout,
+        ),
+        "7891000100003_7891000100002": distance_between_products(
+            "7891000100003",
+            "7891000100002",
+            supermarket_layout,
+        ),
+    }
 
 
 def populate_simulated_purchases(
@@ -77,7 +111,7 @@ def populate_simulated_purchases(
     seed: int | None = None,
     start_at: datetime | None = None,
     start_window_hours: int = DEFAULT_START_WINDOW_HOURS,
-    aisle_gap_m: float = 4.0,
+    aisle_gap_m: float = AISLE_GAP_M,
     clear_existing_data: bool = False,
 ) -> SimulationResult:
     """Gera compras simuladas, grava os dados no banco e devolve um resumo da simulacao."""
@@ -198,18 +232,21 @@ def _build_location_index(
 ) -> dict[str, ProductLocation]:
     """Transforma o layout do supermercado em um indice de localizacao por barcode."""
     locations: dict[str, ProductLocation] = {}
-    for aisle_index, (aisle, products) in enumerate(supermarket_layout.items()):
+    for aisle, products in supermarket_layout.items():
         for product in products:
             barcode = str(product["barcode"])
             if barcode in locations:
                 raise SimulationConfigError(f"Produto duplicado no layout: {barcode}.")
+            distance_to_aisle = product.get("dist_to_aisle_m")
+            if distance_to_aisle is None:
+                raise SimulationConfigError(
+                    f"Produto sem distancia para corredor no layout: {barcode}."
+                )
             locations[barcode] = ProductLocation(
                 barcode=barcode,
                 name=str(product["name"]),
                 aisle=aisle,
-                aisle_index=aisle_index,
-                dist_lateral_1_m=float(product["dist_lateral_1_m"]),
-                dist_lateral_2_m=float(product["dist_lateral_2_m"]),
+                dist_to_aisle_m=float(distance_to_aisle),
             )
     return locations
 
@@ -327,6 +364,20 @@ def _build_event_times(
         event_times.append(event_times[-1] + timedelta(seconds=travel_seconds))
 
     return event_times
+
+
+def _parse_aisle_position(aisle: str) -> tuple[int, int]:
+    """Converte um identificador de corredor como A1 em coordenadas ordenaveis."""
+    match = re.fullmatch(r"([A-Za-z]+)(\d+)", aisle.strip())
+    if match is None:
+        raise SimulationConfigError(f"Corredor invalido no layout: {aisle}.")
+
+    letters, number = match.groups()
+    row_index = 0
+    for char in letters.upper():
+        row_index = row_index * 26 + (ord(char) - ord("A") + 1)
+
+    return row_index, int(number)
 
 
 def _insert_cart(

@@ -125,19 +125,14 @@ def get_location_graph_link_details(
         return None
 
     canonical_source, canonical_target = _canonical_edge_key(source, target)
-    link = next(
-        (
-            item
-            for item in graph.get("links", [])
-            if (
-                item.get("source") == canonical_source and item.get("target") == canonical_target
-            )
-            or (
-                item.get("source") == canonical_target and item.get("target") == canonical_source
-            )
-        ),
-        None,
-    )
+    link = None
+    for item in graph.get("links", []):
+        if _canonical_edge_key(item.get("source"), item.get("target")) == (
+            canonical_source,
+            canonical_target,
+        ):
+            link = item
+            break
     if link is None:
         return None
 

@@ -16,22 +16,26 @@ TEST_LAYOUT = {
         {
             "barcode": "7891000100008",
             "name": "Presunto",
-            "dist_lateral_1_m": 2.0,
-            "dist_lateral_2_m": 18.0,
+            "dist_to_aisle_m": 2.0,
         },
         {
             "barcode": "7891000100022",
             "name": "Manteiga sem sal",
-            "dist_lateral_1_m": 5.0,
-            "dist_lateral_2_m": 15.0,
+            "dist_to_aisle_m": 5.0,
         },
     ],
     "B1": [
         {
             "barcode": "7891000100017",
             "name": "Óleo de girasol",
-            "dist_lateral_1_m": 3.0,
-            "dist_lateral_2_m": 17.0,
+            "dist_to_aisle_m": 3.0,
+        },
+    ],
+    "C1": [
+        {
+            "barcode": "7891000100020",
+            "name": "ultima coisa",
+            "dist_to_aisle_m": 3.0,
         },
     ],
 }
@@ -70,10 +74,57 @@ def test_distance_between_products_in_different_aisles_uses_average_side_routes(
         "7891000100008",
         "7891000100017",
         TEST_LAYOUT,
-        aisle_gap_m=4.0,
     )
 
-    assert distance == 24.0
+    assert distance == 7.0
+
+
+def test_distance_between_products_in_different_number_aisles_adds_cross_aisle_gap():
+    layout = {
+        "A1": [
+            {"barcode": "a", "name": "Produto A", "dist_to_aisle_m": 2.0},
+        ],
+        "A2": [
+            {"barcode": "b", "name": "Produto B", "dist_to_aisle_m": 2.0},
+        ],
+    }
+
+    distance = distance_between_products("a", "b", layout)
+
+    assert distance == 1.0
+
+
+def test_distance_between_products_uses_minimum_route_between_rows():
+    layout = {
+        "A1": [
+            {"barcode": "a", "name": "Produto A", "dist_to_aisle_m": 2.0},
+        ],
+        "B1": [
+            {"barcode": "b", "name": "Produto B", "dist_to_aisle_m": 2.0},
+        ],
+        "B2": [
+            {"barcode": "c", "name": "Produto C", "dist_to_aisle_m": 2.0},
+        ],
+    }
+
+    same_number_distance = distance_between_products("a", "b", layout)
+    different_number_distance = distance_between_products("a", "c", layout)
+
+    assert same_number_distance == 6.0
+    assert different_number_distance == 7.0
+
+
+def test_distance_between_products_same_row_same_number_adds_no_gap():
+    layout = {
+        "A1": [
+            {"barcode": "a", "name": "Produto A", "dist_to_aisle_m": 2.0},
+        ],
+        "B1": [
+            {"barcode": "b", "name": "Produto B", "dist_to_aisle_m": 2.0},
+        ],
+    }
+
+    assert distance_between_products("a", "b", layout) == 6.0
 
 
 def test_populate_simulated_purchases_preserves_existing_data_by_default_and_writes_ordered_events(
