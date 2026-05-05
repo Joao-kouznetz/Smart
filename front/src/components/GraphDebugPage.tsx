@@ -159,7 +159,19 @@ export function GraphDebugPage() {
       const key = canonicalLinkKey(link);
       if (!unique.has(key)) unique.set(key, link);
     }
-    return Array.from(unique.values()).sort((a, b) => b.strength - a.strength);
+    return Array.from(unique.values()).sort((a, b) => {
+      const timeDelta = (a.avg_elapsed_seconds ?? Number.POSITIVE_INFINITY) - (b.avg_elapsed_seconds ?? Number.POSITIVE_INFINITY);
+      if (timeDelta !== 0) return timeDelta;
+
+      const aNeighborId = getNodeId(a.source) === selectedId ? getNodeId(a.target) : getNodeId(a.source);
+      const bNeighborId = getNodeId(b.source) === selectedId ? getNodeId(b.target) : getNodeId(b.source);
+      const aNeighborName = graph.nodes.find((node) => node.id === aNeighborId)?.name ?? "";
+      const bNeighborName = graph.nodes.find((node) => node.id === bNeighborId)?.name ?? "";
+      const nameDelta = aNeighborName.localeCompare(bNeighborName, "pt-BR");
+      if (nameDelta !== 0) return nameDelta;
+
+      return canonicalLinkKey(a).localeCompare(canonicalLinkKey(b));
+    });
   }, [graph, selectedId]);
 
   const selectedLink = useMemo(() => {
@@ -175,6 +187,15 @@ export function GraphDebugPage() {
     }
     return ids;
   }, [selectedLinks]);
+
+  const selectedLinkNeighborId = useMemo(() => {
+    if (!selectedLink || !selectedNode) return null;
+    const sourceId = getNodeId(selectedLink.source);
+    const targetId = getNodeId(selectedLink.target);
+    if (sourceId === selectedNode.id) return targetId;
+    if (targetId === selectedNode.id) return sourceId;
+    return null;
+  }, [selectedLink, selectedNode]);
 
   function getNodeColor(node: LocationGraphNode, selected: boolean, connected: boolean): string {
     if (selected) return SELECTED_NODE_COLOR;
@@ -627,18 +648,19 @@ export function GraphDebugPage() {
             nodeCanvasObject={(node, ctx, globalScale) => {
               const typedNode = node as LocationGraphNode & { x: number; y: number };
               const selected = typedNode.id === selectedId;
+              const selectedLinkNeighbor = typedNode.id === selectedLinkNeighborId;
               const connected = selectedNeighborIds.has(typedNode.id);
-              const radius = selected ? 9 : connected ? 6 : 4.5;
+              const radius = selected ? 9 : selectedLinkNeighbor ? 8 : connected ? 6 : 4.5;
               const fillColor = getNodeColor(typedNode, selected, connected);
               ctx.beginPath();
               ctx.arc(typedNode.x, typedNode.y, radius, 0, 2 * Math.PI, false);
               ctx.fillStyle = fillColor;
               ctx.fill();
-              ctx.lineWidth = selected ? 3 : 1;
-              ctx.strokeStyle = selected ? "#ffffff" : "rgba(255,255,255,0.72)";
+              ctx.lineWidth = selected ? 3 : selectedLinkNeighbor ? 2.5 : 1;
+              ctx.strokeStyle = selected ? "#ffffff" : selectedLinkNeighbor ? "#d95f02" : "rgba(255,255,255,0.72)";
               ctx.stroke();
 
-              if (selected || connected || globalScale > 1.1) {
+              if (selected || selectedLinkNeighbor || connected || globalScale > 1.1) {
                 const label = typedNode.name;
                 const fontSize = Math.max(8, 11 / globalScale);
                 ctx.font = `${fontSize}px sans-serif`;
