@@ -197,6 +197,35 @@ def test_rebuild_location_graph_reports_per_link_analysis(tmp_path, monkeypatch)
     assert "formula_weight" in link["analysis"]
 
 
+def test_rebuild_location_graph_falls_back_when_kde_samples_have_no_variance(tmp_path, monkeypatch):
+    db_path = tmp_path / "smart_cart.db"
+    monkeypatch.setenv("SMART_CART_DB_PATH", str(db_path))
+    init_db()
+
+    base_at = datetime(2026, 4, 1, 10, 0, tzinfo=timezone.utc)
+    with sqlite3.connect(db_path) as connection:
+        for index in range(50):
+            cart_id = f"cart-{index}"
+            start_at = base_at + timedelta(minutes=index)
+            connection.execute(
+                "INSERT INTO carts (id, created_at, updated_at) VALUES (?, ?, ?)",
+                (cart_id, start_at.isoformat(), start_at.isoformat()),
+            )
+            _insert_product(connection, cart_id=cart_id, barcode="a", name="Produto A", aisle="A1")
+            _insert_product(connection, cart_id=cart_id, barcode="b", name="Produto B", aisle="B1")
+            _insert_scan(connection, cart_id=cart_id, barcode="a", created_at=start_at)
+            _insert_scan(connection, cart_id=cart_id, barcode="b", created_at=start_at + timedelta(seconds=10))
+
+    graph = rebuild_location_graph()
+
+    assert graph["meta"]["edge_count"] == 1
+    link = graph["links"][0]
+    assert link["transition_count"] == 50
+    assert link["avg_elapsed_seconds"] == 10
+    assert link["analysis"]["branch"] == "kde_percentile_iqr_fallback"
+    assert link["analysis"]["sample_count_final"] == 50
+
+
 def test_rebuild_location_graph_merges_bidirectional_links(tmp_path, monkeypatch):
     db_path = tmp_path / "smart_cart.db"
     monkeypatch.setenv("SMART_CART_DB_PATH", str(db_path))

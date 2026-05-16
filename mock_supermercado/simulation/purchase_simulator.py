@@ -1,5 +1,6 @@
 import csv
 import json
+import math
 import random
 import sqlite3
 from collections import Counter
@@ -8,17 +9,24 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 import re
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 from mock_supermercado.data import CATALOG_CSV_PATH
 from servidor_central.database import SCHEMA_SQL, get_db_path
 
-WALKING_SPEED_KMH = 5.0
+WALKING_SPEED_KMH = 3.0
 WALKING_SPEED_MPS = WALKING_SPEED_KMH * 1000 / 3600
+SHELF_PICKUP_SECONDS = 2.0
 DEFAULT_START_WINDOW_HOURS = 10
 AISLE_LENGTH_M = 20.0
 AISLE_GAP_M = 1.0
 GONDOLA_WIDTH_M = 1.0
+TravelTimeDistribution = Literal["fixed", "normal", "right-tail", "bimodal"]
+TRAVEL_TIME_DISTRIBUTIONS = ("fixed", "normal", "right-tail", "bimodal")
+MIN_RANDOM_TRAVEL_SECONDS = 0.1
+BIMODAL_FAST_GROUP_PROBABILITY = 0.5
+BIMODAL_FAST_MEAN_SECONDS = 0.3
+BIMODAL_FAST_STANDARD_DEVIATION_SECONDS = 0.04
 
 
 class SimulationConfigError(ValueError):
@@ -113,10 +121,12 @@ def populate_simulated_purchases(
     start_window_hours: int = DEFAULT_START_WINDOW_HOURS,
     aisle_gap_m: float = AISLE_GAP_M,
     clear_existing_data: bool = False,
+    travel_time_distribution: TravelTimeDistribution = "fixed",
 ) -> SimulationResult:
     """Gera compras simuladas, grava os dados no banco e devolve um resumo da simulacao."""
     if people_count < 0:
         raise SimulationConfigError("people_count deve ser maior ou igual a zero.")
+    _validate_travel_time_distribution(travel_time_distribution)
 
     rng = random.Random(seed)
     catalog = _read_catalog_by_barcode(catalog_csv_path or CATALOG_CSV_PATH)
@@ -165,6 +175,7 @@ def populate_simulated_purchases(
                     base_start_at,
                     start_window_hours,
                     aisle_gap_m,
+                    travel_time_distribution,
                 )
                 if not event_times:
                     continue
@@ -308,6 +319,17 @@ def _validate_personas(
                 )
 
 
+def _validate_travel_time_distribution(
+    travel_time_distribution: TravelTimeDistribution,
+) -> None:
+    """Valida o modo de distribuicao usado para gerar tempos entre produtos."""
+    if travel_time_distribution not in TRAVEL_TIME_DISTRIBUTIONS:
+        options = ", ".join(TRAVEL_TIME_DISTRIBUTIONS)
+        raise SimulationConfigError(
+            f"travel_time_distribution deve ser um de: {options}."
+        )
+
+
 def _choose_persona(
     personas: list[dict[str, Any]],
     persona_proportions: list[float],
@@ -345,6 +367,7 @@ def _build_event_times(
     base_start_at: datetime,
     start_window_hours: int,
     aisle_gap_m: float,
+    travel_time_distribution: TravelTimeDistribution,
 ) -> list[datetime]:
     """Calcula os instantes dos eventos de compra a partir da rota e da velocidade de caminhada."""
     if not route:
@@ -360,10 +383,70 @@ def _build_event_times(
             supermarket_layout,
             aisle_gap_m=aisle_gap_m,
         )
-        travel_seconds = distance_m / WALKING_SPEED_MPS
+        base_travel_seconds = distance_m / WALKING_SPEED_MPS + SHELF_PICKUP_SECONDS
+        travel_seconds = _sample_travel_seconds(
+            base_travel_seconds,
+            rng,
+            travel_time_distribution,
+        )
         event_times.append(event_times[-1] + timedelta(seconds=travel_seconds))
 
     return event_times
+
+
+def _sample_travel_seconds(
+    base_travel_seconds: float,
+    rng: random.Random,
+    travel_time_distribution: TravelTimeDistribution,
+) -> float:
+    """Gera um intervalo entre scans mantendo o tempo deterministico como padrao."""
+    if travel_time_distribution == "fixed":
+        return base_travel_seconds
+
+    if base_travel_seconds <= 0:
+        return MIN_RANDOM_TRAVEL_SECONDS
+
+    if travel_time_distribution == "normal":
+        standard_deviation = max(base_travel_seconds * 0.25, 1.0)
+        return max(
+            MIN_RANDOM_TRAVEL_SECONDS,
+            rng.gauss(base_travel_seconds, standard_deviation),
+        )
+
+    if travel_time_distribution == "right-tail":
+        return _sample_right_tail_seconds(base_travel_seconds, rng)
+
+    if travel_time_distribution == "bimodal":
+        if rng.random() < BIMODAL_FAST_GROUP_PROBABILITY:
+            return _sample_bimodal_fast_seconds(rng)
+        return _sample_right_tail_seconds(base_travel_seconds, rng)
+
+    _validate_travel_time_distribution(travel_time_distribution)
+    return base_travel_seconds
+
+
+def _sample_right_tail_seconds(
+    base_travel_seconds: float,
+    rng: random.Random,
+) -> float:
+    """Gera amostras com pico perto do tempo esperado e cauda longa a direita."""
+    sigma = 0.7
+    log_mode = math.log(max(base_travel_seconds, MIN_RANDOM_TRAVEL_SECONDS))
+    return max(
+        MIN_RANDOM_TRAVEL_SECONDS,
+        rng.lognormvariate(log_mode + sigma**2, sigma),
+    )
+
+
+def _sample_bimodal_fast_seconds(rng: random.Random) -> float:
+    """Gera o grupo rapido do bimodal: normal estreita com pico em 0.3s."""
+    return max(
+        MIN_RANDOM_TRAVEL_SECONDS,
+        rng.gauss(
+            BIMODAL_FAST_MEAN_SECONDS,
+            BIMODAL_FAST_STANDARD_DEVIATION_SECONDS,
+        ),
+    )
 
 
 def _parse_aisle_position(aisle: str) -> tuple[int, int]:

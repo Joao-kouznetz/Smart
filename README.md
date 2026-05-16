@@ -111,6 +111,10 @@ Gere mais dados simulados para o grafo ter arestas suficientes:
 .venv/bin/python scripts/populate_simulated_purchases.py 300 --seed 42
 O número 300 é importante porque a regra atual descarta arestas com menos de 15 ocorrências. Com poucos carrinhos, o grafo pode aparecer só com nós e sem ligações.
 Se quiser recriar os dados do zero, adicione `--clear-existing-data`.
+Para testar o tratamento de outliers, use `--travel-time-distribution normal`,
+`--travel-time-distribution right-tail` ou `--travel-time-distribution bimodal`.
+Sem essa flag, o modo `fixed` preserva tempos determinísticos pela distância,
+velocidade simulada e tempo de prateleira.
 
 Recrie o grafo:
 make PYTHON=.venv/bin/python build-location-graph ARGS="--temporal-decay --half-life-days 30"

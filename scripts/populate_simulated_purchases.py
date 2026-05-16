@@ -9,7 +9,10 @@ if str(ROOT_DIR) not in sys.path:
 
 from mock_supermercado.simulation.layout import AISLE_GAP_METERS, SUPERMARKET_LAYOUT
 from mock_supermercado.simulation.personas import PERSONA_PROPORTIONS, PERSONAS
-from mock_supermercado.simulation.purchase_simulator import populate_simulated_purchases
+from mock_supermercado.simulation.purchase_simulator import (
+    TRAVEL_TIME_DISTRIBUTIONS,
+    populate_simulated_purchases,
+)
 
 
 def main() -> None:
@@ -39,6 +42,17 @@ def main() -> None:
         action="store_true",
         help="Apaga os dados simulados existentes antes de inserir os novos.",
     )
+    parser.add_argument(
+        "--travel-time-distribution",
+        choices=TRAVEL_TIME_DISTRIBUTIONS,
+        default="fixed",
+        help=(
+            "Modo dos tempos entre produtos: fixed mantem o comportamento atual; "
+            "normal usa uma normal ao redor do tempo por distancia; right-tail usa "
+            "uma distribuicao com pico e cauda longa a direita; bimodal mistura "
+            "uma normal estreita em 0.3s com right-tail."
+        ),
+    )
 
     args = parser.parse_args()
     start_at = datetime.fromisoformat(args.start_at) if args.start_at else None
@@ -53,6 +67,7 @@ def main() -> None:
         start_at=start_at,
         aisle_gap_m=AISLE_GAP_METERS,
         clear_existing_data=args.clear_existing_data,
+        travel_time_distribution=args.travel_time_distribution,
     )
 
     print(

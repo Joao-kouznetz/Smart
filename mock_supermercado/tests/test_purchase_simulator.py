@@ -5,6 +5,8 @@ from datetime import datetime, timezone
 import pytest
 
 from mock_supermercado.simulation.purchase_simulator import (
+    BIMODAL_FAST_MEAN_SECONDS,
+    SHELF_PICKUP_SECONDS,
     WALKING_SPEED_MPS,
     SimulationConfigError,
     distance_between_products,
@@ -242,7 +244,7 @@ def test_populate_simulated_purchases_aggregates_repeated_products(tmp_path):
     assert item["quantity"] == 2
 
 
-def test_travel_time_is_distance_divided_by_fixed_walking_speed(tmp_path):
+def test_fixed_travel_time_is_distance_speed_plus_shelf_pickup_time(tmp_path):
     result = populate_simulated_purchases(
         people_count=1,
         supermarket_layout=TEST_LAYOUT,
@@ -275,7 +277,119 @@ def test_travel_time_is_distance_divided_by_fixed_walking_speed(tmp_path):
 
     first = datetime.fromisoformat(rows[0][0])
     second = datetime.fromisoformat(rows[1][0])
-    assert (second - first).total_seconds() == pytest.approx(3.0 / WALKING_SPEED_MPS)
+    assert (second - first).total_seconds() == pytest.approx(
+        3.0 / WALKING_SPEED_MPS + SHELF_PICKUP_SECONDS
+    )
+
+
+def test_normal_travel_time_distribution_varies_from_fixed_time(tmp_path):
+    result = populate_simulated_purchases(
+        people_count=1,
+        supermarket_layout=TEST_LAYOUT,
+        personas=[
+            {
+                "name": "Persona distancia",
+                "products": [
+                    {"barcode": "7891000100008", "name": "Presunto"},
+                    {"barcode": "7891000100022", "name": "Manteiga sem sal"},
+                ],
+            }
+        ],
+        persona_proportions=[1.0],
+        db_path=tmp_path / "smart_cart.db",
+        seed=4,
+        start_at=datetime(2026, 4, 29, 9, 0, tzinfo=timezone.utc),
+        start_window_hours=0,
+        travel_time_distribution="normal",
+    )
+
+    elapsed_seconds = _fetch_elapsed_seconds(
+        tmp_path / "smart_cart.db",
+        result.cart_ids[0],
+    )
+
+    assert elapsed_seconds[0] > 0
+    assert elapsed_seconds[0] != pytest.approx(3.0 / WALKING_SPEED_MPS + SHELF_PICKUP_SECONDS)
+
+
+def test_right_tail_travel_time_distribution_creates_variable_longer_times(tmp_path):
+    result = populate_simulated_purchases(
+        people_count=20,
+        supermarket_layout=TEST_LAYOUT,
+        personas=[
+            {
+                "name": "Persona distancia",
+                "products": [
+                    {"barcode": "7891000100008", "name": "Presunto"},
+                    {"barcode": "7891000100022", "name": "Manteiga sem sal"},
+                ],
+            }
+        ],
+        persona_proportions=[1.0],
+        db_path=tmp_path / "smart_cart.db",
+        seed=7,
+        start_at=datetime(2026, 4, 29, 9, 0, tzinfo=timezone.utc),
+        start_window_hours=0,
+        travel_time_distribution="right-tail",
+    )
+
+    elapsed_seconds = [
+        elapsed
+        for cart_id in result.cart_ids
+        for elapsed in _fetch_elapsed_seconds(tmp_path / "smart_cart.db", cart_id)
+    ]
+    fixed_seconds = 3.0 / WALKING_SPEED_MPS + SHELF_PICKUP_SECONDS
+
+    assert max(elapsed_seconds) > fixed_seconds
+    assert len(set(round(elapsed, 3) for elapsed in elapsed_seconds)) > 1
+
+
+def test_bimodal_travel_time_distribution_mixes_fast_normal_and_right_tail(tmp_path):
+    result = populate_simulated_purchases(
+        people_count=120,
+        supermarket_layout=TEST_LAYOUT,
+        personas=[
+            {
+                "name": "Persona distancia",
+                "products": [
+                    {"barcode": "7891000100008", "name": "Presunto"},
+                    {"barcode": "7891000100022", "name": "Manteiga sem sal"},
+                ],
+            }
+        ],
+        persona_proportions=[1.0],
+        db_path=tmp_path / "smart_cart.db",
+        seed=7,
+        start_at=datetime(2026, 4, 29, 9, 0, tzinfo=timezone.utc),
+        start_window_hours=0,
+        travel_time_distribution="bimodal",
+    )
+
+    elapsed_seconds = [
+        elapsed
+        for cart_id in result.cart_ids
+        for elapsed in _fetch_elapsed_seconds(tmp_path / "smart_cart.db", cart_id)
+    ]
+    fast_group = [elapsed for elapsed in elapsed_seconds if 0.18 <= elapsed <= 0.42]
+
+    assert len(fast_group) >= 35
+    assert sum(fast_group) / len(fast_group) == pytest.approx(
+        BIMODAL_FAST_MEAN_SECONDS,
+        abs=0.025,
+    )
+    assert any(elapsed > 3.0 for elapsed in elapsed_seconds)
+
+
+def test_invalid_travel_time_distribution_raises_config_error(tmp_path):
+    with pytest.raises(SimulationConfigError, match="travel_time_distribution"):
+        populate_simulated_purchases(
+            people_count=1,
+            supermarket_layout=TEST_LAYOUT,
+            personas=[TEST_PERSONAS[0]],
+            persona_proportions=[1.0],
+            db_path=tmp_path / "smart_cart.db",
+            travel_time_distribution="desconhecida",
+        )
 
 
 def test_persona_product_name_must_match_catalog(tmp_path):
@@ -294,3 +408,22 @@ def test_persona_product_name_must_match_catalog(tmp_path):
             persona_proportions=[1.0],
             db_path=tmp_path / "smart_cart.db",
         )
+
+
+def _fetch_elapsed_seconds(db_path, cart_id):
+    with sqlite3.connect(db_path) as connection:
+        rows = connection.execute(
+            """
+            SELECT created_at
+            FROM cart_interactions
+            WHERE cart_id = ?
+            ORDER BY created_at ASC
+            """,
+            (cart_id,),
+        ).fetchall()
+
+    timestamps = [datetime.fromisoformat(row[0]) for row in rows]
+    return [
+        (current - previous).total_seconds()
+        for previous, current in zip(timestamps, timestamps[1:])
+    ]

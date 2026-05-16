@@ -799,11 +799,140 @@ def _analyze_link_samples(
         }
         return analysis, upper_cleaned, build_sample_details(lower_threshold=lower_threshold, upper_threshold=upper_threshold, used_for_weight=used_indexes)
 
+    def kde_percentile_iqr_fallback(
+        *,
+        dependency_warning: str | None,
+        formula_summary: str,
+    ) -> tuple[dict[str, Any], list[TransitionSample], list[dict[str, Any]]]:
+        lower_threshold = math.nextafter(_percentile(durations, 5), -math.inf)
+        lower_cleaned = [
+            sample
+            for sample in ordered_samples
+            if sample.elapsed_seconds >= lower_threshold - THRESHOLD_EPSILON
+        ]
+        if len(lower_cleaned) < MIN_CLEAN_EDGE_SAMPLES:
+            analysis = {
+                "branch": "kde_percentile_iqr_fallback",
+                "outlier_method": "kde_percentile_iqr_fallback",
+                "decision": "discarded",
+                "discard_reason": "after_lower",
+                "sample_count_initial": sample_count,
+                "raw_sample_count": sample_count,
+                "lower_threshold_seconds": float(lower_threshold),
+                "upper_threshold_seconds": None,
+                "dip_p_value": None,
+                "dependency_warning": dependency_warning,
+                "min_raw_edge_samples": MIN_RAW_EDGE_SAMPLES,
+                "min_clean_edge_samples": MIN_CLEAN_EDGE_SAMPLES,
+                "lower_cleaned_sample_count": len(lower_cleaned),
+                "upper_cleaned_sample_count": 0,
+                "sample_count_after_lower": len(lower_cleaned),
+                "sample_count_after_upper": 0,
+                "sample_count_final": 0,
+                "discarded_after_lower_threshold": sample_count - len(lower_cleaned),
+                "discarded_after_upper_threshold": 0,
+                "weight_seconds": None,
+                "formula_lower": "P5(tempos do link)",
+                "formula_upper": "Q3 + 1.5 * IQR",
+                "formula_weight": "P25(dados filtrados)",
+                "formula_summary": formula_summary,
+            }
+            return analysis, [], build_sample_details(lower_threshold=lower_threshold, upper_threshold=None, used_for_weight=set(), force_discard_all=True)
+
+        kept_durations = sorted(sample.elapsed_seconds for sample in lower_cleaned)
+        q1 = _percentile(kept_durations, 25)
+        q3 = _percentile(kept_durations, 75)
+        iqr = q3 - q1
+        upper_threshold = math.nextafter(q3 + 1.5 * iqr, math.inf)
+        upper_cleaned = [
+            sample
+            for sample in lower_cleaned
+            if sample.elapsed_seconds <= upper_threshold + THRESHOLD_EPSILON
+        ]
+        if len(upper_cleaned) < MIN_CLEAN_EDGE_SAMPLES:
+            analysis = {
+                "branch": "kde_percentile_iqr_fallback",
+                "outlier_method": "kde_percentile_iqr_fallback",
+                "decision": "discarded",
+                "discard_reason": "after_upper",
+                "sample_count_initial": sample_count,
+                "raw_sample_count": sample_count,
+                "lower_threshold_seconds": float(lower_threshold),
+                "upper_threshold_seconds": float(upper_threshold),
+                "dip_p_value": None,
+                "dependency_warning": dependency_warning,
+                "min_raw_edge_samples": MIN_RAW_EDGE_SAMPLES,
+                "min_clean_edge_samples": MIN_CLEAN_EDGE_SAMPLES,
+                "lower_cleaned_sample_count": len(lower_cleaned),
+                "upper_cleaned_sample_count": len(upper_cleaned),
+                "sample_count_after_lower": len(lower_cleaned),
+                "sample_count_after_upper": len(upper_cleaned),
+                "sample_count_final": 0,
+                "discarded_after_lower_threshold": sample_count - len(lower_cleaned),
+                "discarded_after_upper_threshold": len(lower_cleaned) - len(upper_cleaned),
+                "weight_seconds": None,
+                "formula_lower": "P5(tempos do link)",
+                "formula_upper": "Q3 + 1.5 * IQR",
+                "formula_weight": "P25(dados filtrados)",
+                "formula_summary": formula_summary,
+            }
+            return analysis, [], build_sample_details(lower_threshold=lower_threshold, upper_threshold=upper_threshold, used_for_weight=set(), force_discard_all=True)
+
+        weight_seconds = _percentile(
+            sorted(sample.elapsed_seconds for sample in upper_cleaned),
+            25,
+        )
+        used_indexes = {
+            index
+            for index, sample in enumerate(ordered_samples)
+            if sample.elapsed_seconds >= lower_threshold - THRESHOLD_EPSILON
+            and sample.elapsed_seconds <= upper_threshold + THRESHOLD_EPSILON
+        }
+        analysis = {
+            "branch": "kde_percentile_iqr_fallback",
+            "outlier_method": "kde_percentile_iqr_fallback",
+            "decision": "kept",
+            "discard_reason": None,
+            "sample_count_initial": sample_count,
+            "raw_sample_count": sample_count,
+            "lower_threshold_seconds": float(lower_threshold),
+            "upper_threshold_seconds": float(upper_threshold),
+            "dip_p_value": None,
+            "dependency_warning": dependency_warning,
+            "min_raw_edge_samples": MIN_RAW_EDGE_SAMPLES,
+            "min_clean_edge_samples": MIN_CLEAN_EDGE_SAMPLES,
+            "lower_cleaned_sample_count": len(lower_cleaned),
+            "upper_cleaned_sample_count": len(upper_cleaned),
+            "sample_count_after_lower": len(lower_cleaned),
+            "sample_count_after_upper": len(upper_cleaned),
+            "sample_count_final": len(upper_cleaned),
+            "discarded_after_lower_threshold": sample_count - len(lower_cleaned),
+            "discarded_after_upper_threshold": len(lower_cleaned) - len(upper_cleaned),
+            "weight_seconds": float(weight_seconds),
+            "formula_lower": "P5(tempos do link)",
+            "formula_upper": "Q3 + 1.5 * IQR",
+            "formula_weight": "P25(dados filtrados)",
+            "formula_summary": formula_summary,
+        }
+        return analysis, upper_cleaned, build_sample_details(lower_threshold=lower_threshold, upper_threshold=upper_threshold, used_for_weight=used_indexes)
+
     data = np.array(durations, dtype=float)
+    if float(data.max() - data.min()) <= THRESHOLD_EPSILON:
+        return kde_percentile_iqr_fallback(
+            dependency_warning="KDE ignorado porque todos os tempos do link sao iguais.",
+            formula_summary="Fallback P5/IQR para links com 50+ amostras sem variancia suficiente para KDE.",
+        )
+
     dip_statistic, p_value = diptest(data)
     _ = dip_statistic
     grid = np.linspace(float(data.min()), float(data.max()), max(512, min(2048, sample_count * 16)))
-    density = gaussian_kde(data, bw_method="silverman")(grid)
+    try:
+        density = gaussian_kde(data, bw_method="silverman")(grid)
+    except (ValueError, np.linalg.LinAlgError) as exc:
+        return kde_percentile_iqr_fallback(
+            dependency_warning=f"KDE falhou: {type(exc).__name__}.",
+            formula_summary="Fallback P5/IQR para links com 50+ amostras quando o KDE falha.",
+        )
 
     if float(p_value) < 0.05:
         peaks, _ = find_peaks(density)

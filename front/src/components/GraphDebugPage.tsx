@@ -14,6 +14,13 @@ const CATEGORY_COLORS = ["#24516b", "#3f8c9f", "#5c7cfa", "#c77dff", "#ef7d22", 
 const BASE_NODE_COLOR = "#2f5d7c";
 const CONNECTED_NODE_COLOR = "#1f8a70";
 const SELECTED_NODE_COLOR = "#ef7d22";
+const HISTOGRAM_WIDTH = 560;
+const HISTOGRAM_HEIGHT = 300;
+const HISTOGRAM_MARGIN = { top: 28, right: 20, bottom: 74, left: 44 };
+const HISTOGRAM_PLOT_WIDTH = HISTOGRAM_WIDTH - HISTOGRAM_MARGIN.left - HISTOGRAM_MARGIN.right;
+const HISTOGRAM_PLOT_HEIGHT = HISTOGRAM_HEIGHT - HISTOGRAM_MARGIN.top - HISTOGRAM_MARGIN.bottom;
+
+type YScaleMode = "linear" | "log";
 
 function getNodeId(value: string | LocationGraphNode): string {
   return typeof value === "string" ? value : value.id;
@@ -86,6 +93,21 @@ function formatIsoDate(value: string): string {
   return Number.isNaN(date.getTime()) ? value : date.toLocaleString("pt-BR", { hour12: false });
 }
 
+function gaussianKernel(value: number): number {
+  return Math.exp(-0.5 * value * value) / Math.sqrt(2 * Math.PI);
+}
+
+function standardDeviation(values: number[]): number {
+  if (values.length <= 1) return 0;
+  const mean = values.reduce((sum, value) => sum + value, 0) / values.length;
+  const variance = values.reduce((sum, value) => sum + (value - mean) ** 2, 0) / (values.length - 1);
+  return Math.sqrt(variance);
+}
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, value));
+}
+
 export function GraphDebugPage() {
   const graphRef = useRef<any>(null);
   const detailDragOffsetRef = useRef<{ x: number; y: number } | null>(null);
@@ -96,6 +118,8 @@ export function GraphDebugPage() {
   const [linkDetails, setLinkDetails] = useState<LocationGraphLinkDetails | null>(null);
   const [linkLoading, setLinkLoading] = useState(false);
   const [binWidthSeconds, setBinWidthSeconds] = useState(0.1);
+  const [histogramYScale, setHistogramYScale] = useState<YScaleMode>("log");
+  const [labelMinCount, setLabelMinCount] = useState(3);
   const [detailWindow, setDetailWindow] = useState({ x: 48, y: 120, width: 560, height: 640 });
   const [isDraggingDetail, setIsDraggingDetail] = useState(false);
   const [colorByAisle, setColorByAisle] = useState(true);
@@ -301,12 +325,12 @@ export function GraphDebugPage() {
   const histogramBins = useMemo(() => {
     if (!linkDetails) return [];
     const width = Math.max(binWidthSeconds, 0.01);
-    const bins = new Map<number, { time: number; count: number; kept: number; discarded: number }>();
+    const bins = new Map<number, { time: number; endTime: number; count: number; kept: number; discarded: number }>();
 
     for (const sample of linkDetails.samples) {
       const time = Math.floor(sample.elapsed_seconds / width) * width;
       const key = Number(time.toFixed(4));
-      const current = bins.get(key) ?? { time: key, count: 0, kept: 0, discarded: 0 };
+      const current = bins.get(key) ?? { time: key, endTime: key + width, count: 0, kept: 0, discarded: 0 };
       current.count += 1;
       if (sample.kept_after_lower && sample.kept_after_upper) current.kept += 1;
       else current.discarded += 1;
@@ -330,6 +354,60 @@ export function GraphDebugPage() {
       linkDetails.analysis.weight_seconds ?? 0,
     );
   }, [linkDetails]);
+
+  const histogramScaleValue = (value: number, maxValue = histogramMaxCount) => {
+    if (histogramYScale === "log") {
+      return clamp(
+        Math.log10(Math.max(0, value) + 1) / Math.log10(Math.max(1, maxValue) + 1),
+        0,
+        1,
+      );
+    }
+    return clamp(Math.max(0, value) / Math.max(1, maxValue), 0, 1);
+  };
+
+  const kdePath = useMemo(() => {
+    if (!linkDetails || linkDetails.samples.length < 2) return "";
+    const values = linkDetails.samples.map((sample) => sample.elapsed_seconds);
+    const deviation = standardDeviation(values);
+    const bandwidth = Math.max(
+      binWidthSeconds,
+      deviation > 0 ? 1.06 * deviation * values.length ** -0.2 : binWidthSeconds,
+      0.01,
+    );
+    const pointCount = 96;
+    const maxDensityCount = Math.max(histogramMaxCount, 1);
+    const points = Array.from({ length: pointCount }, (_, index) => {
+      const time = (histogramMaxTime * index) / (pointCount - 1);
+      const density =
+        values.reduce((sum, value) => sum + gaussianKernel((time - value) / bandwidth), 0) /
+        (values.length * bandwidth);
+      const expectedCount = density * values.length * Math.max(binWidthSeconds, 0.01);
+      const x = HISTOGRAM_MARGIN.left + (time / histogramMaxTime) * HISTOGRAM_PLOT_WIDTH;
+      const y =
+        HISTOGRAM_MARGIN.top +
+        HISTOGRAM_PLOT_HEIGHT -
+        histogramScaleValue(expectedCount, maxDensityCount) * HISTOGRAM_PLOT_HEIGHT;
+      return `${index === 0 ? "M" : "L"} ${x.toFixed(2)} ${y.toFixed(2)}`;
+    });
+    return points.join(" ");
+  }, [binWidthSeconds, histogramMaxCount, histogramMaxTime, histogramYScale, linkDetails]);
+
+  const histogramXTicks = useMemo(() => {
+    const step = Math.max(1, Math.ceil(histogramBins.length / 9));
+    return histogramBins.filter((_, index) => index % step === 0);
+  }, [histogramBins]);
+
+  const xForTime = (time: number) => {
+    return HISTOGRAM_MARGIN.left + (clamp(time, 0, histogramMaxTime) / histogramMaxTime) * HISTOGRAM_PLOT_WIDTH;
+  };
+
+  const lowerThresholdX = linkDetails?.analysis.lower_threshold_seconds != null
+    ? xForTime(linkDetails.analysis.lower_threshold_seconds)
+    : null;
+  const upperThresholdX = linkDetails?.analysis.upper_threshold_seconds != null
+    ? xForTime(linkDetails.analysis.upper_threshold_seconds)
+    : null;
 
   const analysisTitle = useMemo(() => {
     if (!linkDetails) return "";
@@ -481,33 +559,109 @@ export function GraphDebugPage() {
             </div>
 
             <div className="graph-scatter-panel">
-              <label className="graph-field graph-field--inline">
-                <span>Margem de agrupamento</span>
-                <input
-                  min={0.01}
-                  onChange={(event) => setBinWidthSeconds(Math.max(0.01, Number(event.target.value) || 0.1))}
-                  step={0.01}
-                  type="number"
-                  value={binWidthSeconds}
+              <div className="graph-chart-controls">
+                <label className="graph-field graph-field--inline">
+                  <span>Margem de agrupamento</span>
+                  <input
+                    min={0.01}
+                    onChange={(event) => setBinWidthSeconds(Math.max(0.01, Number(event.target.value) || 0.1))}
+                    step={0.01}
+                    type="number"
+                    value={binWidthSeconds}
+                  />
+                </label>
+                <label className="graph-field graph-field--inline">
+                  <span>Label se contagem &gt;</span>
+                  <input
+                    min={0}
+                    onChange={(event) => setLabelMinCount(Math.max(0, Math.floor(Number(event.target.value) || 0)))}
+                    step={1}
+                    type="number"
+                    value={labelMinCount}
+                  />
+                </label>
+                <div className="graph-segmented-control" aria-label="Escala do eixo Y">
+                  <button
+                    className={histogramYScale === "linear" ? "graph-segmented-control__button graph-segmented-control__button--active" : "graph-segmented-control__button"}
+                    onClick={() => setHistogramYScale("linear")}
+                    type="button"
+                  >
+                    Linear
+                  </button>
+                  <button
+                    className={histogramYScale === "log" ? "graph-segmented-control__button graph-segmented-control__button--active" : "graph-segmented-control__button"}
+                    onClick={() => setHistogramYScale("log")}
+                    type="button"
+                  >
+                    Log
+                  </button>
+                </div>
+              </div>
+              <svg viewBox={`0 0 ${HISTOGRAM_WIDTH} ${HISTOGRAM_HEIGHT}`} className="graph-scatter">
+                <rect
+                  x={HISTOGRAM_MARGIN.left}
+                  y={HISTOGRAM_MARGIN.top}
+                  width={HISTOGRAM_PLOT_WIDTH}
+                  height={HISTOGRAM_PLOT_HEIGHT}
+                  className="graph-threshold-region graph-threshold-region--kept"
                 />
-              </label>
-              <svg viewBox="0 0 320 180" className="graph-scatter">
-                <line x1="32" y1="148" x2="300" y2="148" className="graph-axis" />
-                <line x1="32" y1="20" x2="32" y2="148" className="graph-axis" />
-                <text x="166" y="172" textAnchor="middle" className="graph-axis-label">Tempo (s)</text>
-                <text x="10" y="84" textAnchor="middle" className="graph-axis-label" transform="rotate(-90 10 84)">Quantidade</text>
+                {lowerThresholdX != null ? (
+                  <rect
+                    x={HISTOGRAM_MARGIN.left}
+                    y={HISTOGRAM_MARGIN.top}
+                    width={Math.max(0, lowerThresholdX - HISTOGRAM_MARGIN.left)}
+                    height={HISTOGRAM_PLOT_HEIGHT}
+                    className="graph-threshold-region graph-threshold-region--discarded"
+                  />
+                ) : null}
+                {upperThresholdX != null ? (
+                  <rect
+                    x={upperThresholdX}
+                    y={HISTOGRAM_MARGIN.top}
+                    width={Math.max(0, HISTOGRAM_MARGIN.left + HISTOGRAM_PLOT_WIDTH - upperThresholdX)}
+                    height={HISTOGRAM_PLOT_HEIGHT}
+                    className="graph-threshold-region graph-threshold-region--discarded"
+                  />
+                ) : null}
+                {lowerThresholdX != null || upperThresholdX != null ? (
+                  <rect
+                    x={lowerThresholdX ?? HISTOGRAM_MARGIN.left}
+                    y={HISTOGRAM_MARGIN.top}
+                    width={Math.max(0, (upperThresholdX ?? HISTOGRAM_MARGIN.left + HISTOGRAM_PLOT_WIDTH) - (lowerThresholdX ?? HISTOGRAM_MARGIN.left))}
+                    height={HISTOGRAM_PLOT_HEIGHT}
+                    className="graph-threshold-region graph-threshold-region--kept-strong"
+                  />
+                ) : null}
+                <line
+                  x1={HISTOGRAM_MARGIN.left}
+                  y1={HISTOGRAM_MARGIN.top + HISTOGRAM_PLOT_HEIGHT}
+                  x2={HISTOGRAM_MARGIN.left + HISTOGRAM_PLOT_WIDTH}
+                  y2={HISTOGRAM_MARGIN.top + HISTOGRAM_PLOT_HEIGHT}
+                  className="graph-axis"
+                />
+                <line
+                  x1={HISTOGRAM_MARGIN.left}
+                  y1={HISTOGRAM_MARGIN.top}
+                  x2={HISTOGRAM_MARGIN.left}
+                  y2={HISTOGRAM_MARGIN.top + HISTOGRAM_PLOT_HEIGHT}
+                  className="graph-axis"
+                />
+                <text x={HISTOGRAM_MARGIN.left + HISTOGRAM_PLOT_WIDTH / 2} y={HISTOGRAM_HEIGHT - 8} textAnchor="middle" className="graph-axis-label">Tempo (s)</text>
+                <text x="12" y={HISTOGRAM_MARGIN.top + HISTOGRAM_PLOT_HEIGHT / 2} textAnchor="middle" className="graph-axis-label" transform={`rotate(-90 12 ${HISTOGRAM_MARGIN.top + HISTOGRAM_PLOT_HEIGHT / 2})`}>
+                  Quantidade {histogramYScale === "log" ? "(log)" : ""}
+                </text>
                 {linkDetails.analysis.lower_threshold_seconds != null ? (
                   <>
                     <line
-                      x1={32 + (linkDetails.analysis.lower_threshold_seconds / histogramMaxTime) * 268}
-                      x2={32 + (linkDetails.analysis.lower_threshold_seconds / histogramMaxTime) * 268}
-                      y1="20"
-                      y2="148"
+                      x1={xForTime(linkDetails.analysis.lower_threshold_seconds)}
+                      x2={xForTime(linkDetails.analysis.lower_threshold_seconds)}
+                      y1={HISTOGRAM_MARGIN.top}
+                      y2={HISTOGRAM_MARGIN.top + HISTOGRAM_PLOT_HEIGHT}
                       className="graph-threshold graph-threshold--lower"
                     />
                     <text
-                      x={32 + (linkDetails.analysis.lower_threshold_seconds / histogramMaxTime) * 268}
-                      y="16"
+                      x={xForTime(linkDetails.analysis.lower_threshold_seconds)}
+                      y={HISTOGRAM_MARGIN.top - 8}
                       textAnchor="middle"
                       className="graph-threshold-label"
                     >
@@ -518,15 +672,15 @@ export function GraphDebugPage() {
                 {linkDetails.analysis.upper_threshold_seconds != null ? (
                   <>
                     <line
-                      x1={32 + (linkDetails.analysis.upper_threshold_seconds / histogramMaxTime) * 268}
-                      x2={32 + (linkDetails.analysis.upper_threshold_seconds / histogramMaxTime) * 268}
-                      y1="20"
-                      y2="148"
+                      x1={xForTime(linkDetails.analysis.upper_threshold_seconds)}
+                      x2={xForTime(linkDetails.analysis.upper_threshold_seconds)}
+                      y1={HISTOGRAM_MARGIN.top}
+                      y2={HISTOGRAM_MARGIN.top + HISTOGRAM_PLOT_HEIGHT}
                       className="graph-threshold graph-threshold--upper"
                     />
                     <text
-                      x={32 + (linkDetails.analysis.upper_threshold_seconds / histogramMaxTime) * 268}
-                      y="16"
+                      x={xForTime(linkDetails.analysis.upper_threshold_seconds)}
+                      y={HISTOGRAM_MARGIN.top - 8}
                       textAnchor="middle"
                       className="graph-threshold-label graph-threshold-label--upper"
                     >
@@ -535,28 +689,48 @@ export function GraphDebugPage() {
                   </>
                 ) : null}
                 {histogramBins.map((bin) => {
-                  const barWidth = Math.max(7, (binWidthSeconds / histogramMaxTime) * 268);
-                  const barHeight = (bin.count / histogramMaxCount) * 108;
-                  const x = 32 + (bin.time / histogramMaxTime) * 268;
-                  const y = 148 - barHeight;
-                  const kept =
-                    linkDetails.analysis.lower_threshold_seconds == null
-                      ? true
-                      : bin.time >= linkDetails.analysis.lower_threshold_seconds;
+                  const x = xForTime(bin.time);
+                  const barWidth = Math.max(2, (binWidthSeconds / histogramMaxTime) * HISTOGRAM_PLOT_WIDTH - 1);
+                  const totalHeight = histogramScaleValue(bin.count) * HISTOGRAM_PLOT_HEIGHT;
+                  const discardedHeight = bin.count > 0 ? totalHeight * (bin.discarded / bin.count) : 0;
+                  const keptHeight = totalHeight - discardedHeight;
+                  const barBottom = HISTOGRAM_MARGIN.top + HISTOGRAM_PLOT_HEIGHT;
+                  const y = barBottom - totalHeight;
                   return (
                     <g key={bin.time}>
-                      <rect
-                        x={x}
-                        y={y}
-                        width={barWidth}
-                        height={barHeight}
-                        rx="3"
-                        className={kept ? "graph-bar graph-bar--kept" : "graph-bar graph-bar--discarded"}
-                      />
-                      <text x={x + barWidth / 2} y={y - 4} textAnchor="middle" className="graph-bar-label">
-                        {bin.count}
-                      </text>
-                      <text x={x + barWidth / 2} y={162} textAnchor="middle" className="graph-bin-label">
+                      {bin.discarded > 0 ? (
+                        <rect
+                          x={x}
+                          y={barBottom - discardedHeight}
+                          width={barWidth}
+                          height={discardedHeight}
+                          className="graph-bar graph-bar--discarded"
+                        />
+                      ) : null}
+                      {bin.kept > 0 ? (
+                        <rect
+                          x={x}
+                          y={y}
+                          width={barWidth}
+                          height={keptHeight}
+                          className="graph-bar graph-bar--kept"
+                        />
+                      ) : null}
+                      {bin.count > labelMinCount ? (
+                        <text x={x + barWidth / 2} y={Math.max(HISTOGRAM_MARGIN.top + 10, y - 4)} textAnchor="middle" className="graph-bar-label">
+                          {bin.count}
+                        </text>
+                      ) : null}
+                    </g>
+                  );
+                })}
+                {kdePath ? <path d={kdePath} className="graph-kde-line" /> : null}
+                {histogramXTicks.map((bin) => {
+                  const x = xForTime(bin.time);
+                  return (
+                    <g key={`tick-${bin.time}`} transform={`translate(${x} ${HISTOGRAM_MARGIN.top + HISTOGRAM_PLOT_HEIGHT})`}>
+                      <line y2="5" className="graph-axis-tick" />
+                      <text x="6" y="14" className="graph-bin-label" transform="rotate(45)">
                         {bin.time.toFixed(binWidthSeconds < 1 ? 1 : 0)}s
                       </text>
                     </g>
@@ -566,7 +740,31 @@ export function GraphDebugPage() {
               <div className="graph-scatter-legend">
                 <span><i className="graph-bar" /> Mantido</span>
                 <span><i className="graph-bar graph-bar--discarded" /> Descartado</span>
-                <span><i className="graph-threshold graph-threshold--lower" /> Threshold</span>
+                <span><i className="graph-kde-legend" /> KDE</span>
+                <span><i className="graph-threshold graph-threshold--lower" /> Lower</span>
+                <span><i className="graph-threshold graph-threshold--upper" /> Upper</span>
+              </div>
+              <div className="graph-link-stats">
+                <div>
+                  <span>Total</span>
+                  <strong>{linkDetails.analysis.sample_count_initial}</strong>
+                </div>
+                <div>
+                  <span>No cálculo</span>
+                  <strong>{linkDetails.analysis.sample_count_final}</strong>
+                </div>
+                <div>
+                  <span>Corte lower</span>
+                  <strong>{linkDetails.analysis.discarded_after_lower_threshold}</strong>
+                </div>
+                <div>
+                  <span>Corte upper</span>
+                  <strong>{linkDetails.analysis.discarded_after_upper_threshold}</strong>
+                </div>
+                <div>
+                  <span>Peso</span>
+                  <strong>{formatSeconds(linkDetails.analysis.weight_seconds)}</strong>
+                </div>
               </div>
             </div>
 
