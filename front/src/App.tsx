@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import Keyboard from "react-simple-keyboard";
 import "react-simple-keyboard/build/css/index.css";
 
+import { RecommendationGraphPage } from "./components/RecommendationGraphPage";
 import { CartItemsPanel } from "./components/CartItemsPanel";
 import { GraphDebugPage } from "./components/GraphDebugPage";
 import { PromotionRail } from "./components/PromotionRail";
@@ -42,6 +43,9 @@ function SearchIcon() {
 }
 
 function App() {
+  if (window.location.pathname.startsWith("/app/recommendation-graph")) {
+  return <RecommendationGraphPage />;
+  }
   if (window.location.pathname.startsWith("/app/graph")) {
     return <GraphDebugPage />;
   }
