@@ -24,9 +24,9 @@ GONDOLA_WIDTH_M = 1.0
 TravelTimeDistribution = Literal["fixed", "normal", "right-tail", "bimodal"]
 TRAVEL_TIME_DISTRIBUTIONS = ("fixed", "normal", "right-tail", "bimodal")
 MIN_RANDOM_TRAVEL_SECONDS = 0.1
-BIMODAL_FAST_GROUP_PROBABILITY = 0.5
+BIMODAL_FAST_GROUP_PROBABILITY = 0.25
 BIMODAL_FAST_MEAN_SECONDS = 0.3
-BIMODAL_FAST_STANDARD_DEVIATION_SECONDS = 0.04
+BIMODAL_FAST_STANDARD_DEVIATION_SECONDS = 0.18
 
 
 class SimulationConfigError(ValueError):

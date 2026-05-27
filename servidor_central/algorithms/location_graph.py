@@ -3,6 +3,7 @@ import math
 import os
 import random
 import sqlite3
+import heapq
 from collections import defaultdict
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -17,6 +18,9 @@ DEFAULT_DECAY_MIN_WEIGHT = 0.01
 MIN_RAW_EDGE_SAMPLES = 15
 MIN_CLEAN_EDGE_SAMPLES = 10
 THRESHOLD_EPSILON = 1e-9
+DEFAULT_PRODUCTS_PER_CORRIDOR = 5
+DEFAULT_SHORT_EDGE_PERCENTILE = 8.0
+DEFAULT_SHORT_EDGE_MAX_DEGREE = 8
 
 
 def _canonical_edge_key(source: str, target: str) -> tuple[str, str]:
@@ -220,6 +224,7 @@ def get_nearby_products(
         return []
 
     nodes_by_id = {item.get("id"): item for item in graph.get("nodes", [])}
+    current_allocated_corridor = node.get("allocated_corridor")
     nearby_products_by_barcode: dict[str, dict[str, Any]] = {}
 
     for link in graph.get("links", []):
@@ -244,6 +249,12 @@ def get_nearby_products(
             "avg_elapsed_seconds": link.get("avg_elapsed_seconds"),
             "transition_count": link.get("transition_count"),
             "strength": link.get("strength"),
+            "allocated_corridor": neighbor_node.get("allocated_corridor"),
+            "corridor_seed": neighbor_node.get("corridor_seed"),
+            "same_allocated_corridor": bool(
+                current_allocated_corridor
+                and neighbor_node.get("allocated_corridor") == current_allocated_corridor
+            ),
         }
 
         previous_item = nearby_products_by_barcode.get(neighbor_barcode)
@@ -251,27 +262,32 @@ def get_nearby_products(
             nearby_products_by_barcode[neighbor_barcode] = current_item
             continue
 
-        current_score = (
-            float(current_item.get("avg_elapsed_seconds") or math.inf),
-            str(current_item.get("name") or ""),
-            neighbor_barcode,
-        )
-        previous_score = (
-            float(previous_item.get("avg_elapsed_seconds") or math.inf),
-            str(previous_item.get("name") or ""),
-            neighbor_barcode,
-        )
+        current_score = _nearby_product_sort_score(current_item, current_allocated_corridor)
+        previous_score = _nearby_product_sort_score(previous_item, current_allocated_corridor)
         if current_score < previous_score:
             nearby_products_by_barcode[neighbor_barcode] = current_item
 
     return sorted(
         nearby_products_by_barcode.values(),
-        key=lambda item: (
-            float(item.get("avg_elapsed_seconds") or math.inf),
-            str(item.get("name") or ""),
-            str(item.get("barcode") or ""),
-        ),
+        key=lambda item: _nearby_product_sort_score(item, current_allocated_corridor),
     )[:limit]
+
+
+def _nearby_product_sort_score(
+    item: dict[str, Any],
+    current_allocated_corridor: str | None,
+) -> tuple[int, float, str, str]:
+    same_allocated_corridor_rank = 0
+    if current_allocated_corridor:
+        same_allocated_corridor_rank = (
+            0 if item.get("allocated_corridor") == current_allocated_corridor else 1
+        )
+    return (
+        same_allocated_corridor_rank,
+        float(item.get("avg_elapsed_seconds") or math.inf),
+        str(item.get("name") or ""),
+        str(item.get("barcode") or ""),
+    )
 
 
 def infer_product_position(
@@ -591,7 +607,8 @@ def _analyze_link_samples(
         return analysis, [], build_sample_details(lower_threshold=None, upper_threshold=None, used_for_weight=set(), force_discard_all=True)
 
     if sample_count <= 15:
-        median = _percentile(durations, 50)
+        valid_durations = [d for d in durations if d > 2.0]
+        median = _percentile(valid_durations, 15) if valid_durations else _percentile(durations, 25)
         analysis = {
             "branch": "median",
             "outlier_method": "median",
@@ -625,7 +642,7 @@ def _analyze_link_samples(
         q1_log = _percentile(log_values, 25)
         q3_log = _percentile(log_values, 75)
         iqr_log = q3_log - q1_log
-        lower_threshold = math.nextafter(math.exp(q1_log - 1.5 * iqr_log), -math.inf)
+        lower_threshold = max(2.0, math.nextafter(math.exp(q1_log - 1.5 * iqr_log), -math.inf))
         upper_threshold = math.nextafter(math.exp(q3_log + 1.5 * iqr_log), math.inf)
         lower_cleaned = [sample for sample in ordered_samples if lower_threshold - THRESHOLD_EPSILON <= sample.elapsed_seconds <= upper_threshold + THRESHOLD_EPSILON]
         if len(lower_cleaned) < MIN_CLEAN_EDGE_SAMPLES:
@@ -658,7 +675,7 @@ def _analyze_link_samples(
             return analysis, [], build_sample_details(lower_threshold=lower_threshold, upper_threshold=upper_threshold, used_for_weight=set(), force_discard_all=True)
 
         kept_durations = sorted(sample.elapsed_seconds for sample in lower_cleaned)
-        weight_seconds = _percentile(kept_durations, 25)
+        weight_seconds = _percentile(kept_durations, 15)
         kept_indexes = {
             index
             for index, sample in enumerate(ordered_samples)
@@ -699,12 +716,24 @@ def _analyze_link_samples(
         from scipy.stats import gaussian_kde
     except ImportError as exc:
         dependency_warning = f"Dependencia estatistica ausente: {exc.name}."
-        lower_threshold = math.nextafter(_percentile(durations, 5), -math.inf)
+        kde_valley = _kde_valley_between_first_two_peaks(durations)
+        if kde_valley is None:
+            lower_threshold = max(2.0, math.nextafter(_percentile(durations, 5), -math.inf))
+            branch = "kde_dependency_fallback"
+            outlier_method = "kde_dependency_fallback"
+            formula_lower = "P5(tempos do link)"
+            formula_summary = "Fallback para quando as dependencias estatisticas nao estiverem disponiveis."
+        else:
+            lower_threshold = max(2.0, math.nextafter(kde_valley, -math.inf))
+            branch = "kde_bimodal_dependency_fallback"
+            outlier_method = "kde_bimodal_dependency_fallback"
+            formula_lower = "vale do KDE simples entre os dois primeiros picos significativos"
+            formula_summary = "Fallback sem dependencias: KDE gaussiano simples e corte no vale entre dois picos."
         lower_cleaned = [sample for sample in ordered_samples if sample.elapsed_seconds >= lower_threshold - THRESHOLD_EPSILON]
         if len(lower_cleaned) < MIN_CLEAN_EDGE_SAMPLES:
             analysis = {
-                "branch": "kde_dependency_fallback",
-                "outlier_method": "kde_dependency_fallback",
+                "branch": branch,
+                "outlier_method": outlier_method,
                 "decision": "discarded",
                 "discard_reason": "after_lower",
                 "sample_count_initial": sample_count,
@@ -723,23 +752,23 @@ def _analyze_link_samples(
                 "discarded_after_lower_threshold": sample_count - len(lower_cleaned),
                 "discarded_after_upper_threshold": 0,
                 "weight_seconds": None,
-                "formula_lower": "P5(tempos do link)",
+                "formula_lower": formula_lower,
                 "formula_upper": "Q3 + 1.5 * IQR",
                 "formula_weight": "P25(dados filtrados)",
-                "formula_summary": "Fallback para quando as dependencias estatisticas nao estiverem disponiveis.",
+                "formula_summary": formula_summary,
             }
             return analysis, [], build_sample_details(lower_threshold=lower_threshold, upper_threshold=None, used_for_weight=set(), force_discard_all=True)
 
         kept_durations = sorted(sample.elapsed_seconds for sample in lower_cleaned)
-        q1 = _percentile(kept_durations, 25)
+        q1 = _percentile(kept_durations, 15)
         q3 = _percentile(kept_durations, 75)
         iqr = q3 - q1
         upper_threshold = math.nextafter(q3 + 1.5 * iqr, math.inf)
         upper_cleaned = [sample for sample in lower_cleaned if sample.elapsed_seconds <= upper_threshold + THRESHOLD_EPSILON]
         if len(upper_cleaned) < MIN_CLEAN_EDGE_SAMPLES:
             analysis = {
-                "branch": "kde_dependency_fallback",
-                "outlier_method": "kde_dependency_fallback",
+                "branch": branch,
+                "outlier_method": outlier_method,
                 "decision": "discarded",
                 "discard_reason": "after_upper",
                 "sample_count_initial": sample_count,
@@ -758,10 +787,10 @@ def _analyze_link_samples(
                 "discarded_after_lower_threshold": sample_count - len(lower_cleaned),
                 "discarded_after_upper_threshold": len(lower_cleaned) - len(upper_cleaned),
                 "weight_seconds": None,
-                "formula_lower": "P5(tempos do link)",
+                "formula_lower": formula_lower,
                 "formula_upper": "Q3 + 1.5 * IQR",
                 "formula_weight": "P25(dados filtrados)",
-                "formula_summary": "Fallback para quando as dependencias estatisticas nao estiverem disponiveis.",
+                "formula_summary": formula_summary,
             }
             return analysis, [], build_sample_details(lower_threshold=lower_threshold, upper_threshold=upper_threshold, used_for_weight=set(), force_discard_all=True)
 
@@ -772,8 +801,8 @@ def _analyze_link_samples(
             if sample.elapsed_seconds >= lower_threshold - THRESHOLD_EPSILON and sample.elapsed_seconds <= upper_threshold + THRESHOLD_EPSILON
         }
         analysis = {
-            "branch": "kde_dependency_fallback",
-            "outlier_method": "kde_dependency_fallback",
+            "branch": branch,
+            "outlier_method": outlier_method,
             "decision": "kept",
             "discard_reason": None,
             "sample_count_initial": sample_count,
@@ -792,10 +821,10 @@ def _analyze_link_samples(
             "discarded_after_lower_threshold": sample_count - len(lower_cleaned),
             "discarded_after_upper_threshold": len(lower_cleaned) - len(upper_cleaned),
             "weight_seconds": float(weight_seconds),
-            "formula_lower": "P5(tempos do link)",
+            "formula_lower": formula_lower,
             "formula_upper": "Q3 + 1.5 * IQR",
             "formula_weight": "P25(dados filtrados)",
-            "formula_summary": "Fallback para quando as dependencias estatisticas nao estiverem disponiveis.",
+            "formula_summary": formula_summary,
         }
         return analysis, upper_cleaned, build_sample_details(lower_threshold=lower_threshold, upper_threshold=upper_threshold, used_for_weight=used_indexes)
 
@@ -804,7 +833,7 @@ def _analyze_link_samples(
         dependency_warning: str | None,
         formula_summary: str,
     ) -> tuple[dict[str, Any], list[TransitionSample], list[dict[str, Any]]]:
-        lower_threshold = math.nextafter(_percentile(durations, 5), -math.inf)
+        lower_threshold = max(2.0, math.nextafter(_percentile(durations, 5), -math.inf))
         lower_cleaned = [
             sample
             for sample in ordered_samples
@@ -840,7 +869,7 @@ def _analyze_link_samples(
             return analysis, [], build_sample_details(lower_threshold=lower_threshold, upper_threshold=None, used_for_weight=set(), force_discard_all=True)
 
         kept_durations = sorted(sample.elapsed_seconds for sample in lower_cleaned)
-        q1 = _percentile(kept_durations, 25)
+        q1 = _percentile(kept_durations, 15)
         q3 = _percentile(kept_durations, 75)
         iqr = q3 - q1
         upper_threshold = math.nextafter(q3 + 1.5 * iqr, math.inf)
@@ -935,21 +964,26 @@ def _analyze_link_samples(
         )
 
     if float(p_value) < 0.05:
-        peaks, _ = find_peaks(density)
+        peak_min_height = max(float(density.max()) * 0.02, THRESHOLD_EPSILON)
+        peak_distance = max(2, len(grid) // 50)
+        peaks, _ = find_peaks(
+            density,
+            distance=peak_distance,
+            height=peak_min_height,
+        )
         if len(peaks) >= 2:
-            strongest_peaks = sorted(peaks, key=lambda index: density[index], reverse=True)[:2]
-            first_peak, second_peak = sorted(strongest_peaks)
+            first_peak, second_peak = sorted(peaks)[:2]
             valley_segment = density[first_peak : second_peak + 1]
             valley_index = first_peak + int(np.argmin(valley_segment))
             lower_threshold = math.nextafter(float(grid[valley_index]), -math.inf)
-            formula_lower = "vale do KDE(Silverman) entre os dois primeiros picos"
+            formula_lower = "vale do KDE(Silverman) entre os dois primeiros picos significativos"
         else:
-            lower_threshold = math.nextafter(_percentile(durations, 5), -math.inf)
+            lower_threshold = max(2.0, math.nextafter(_percentile(durations, 5), -math.inf))
             formula_lower = "P5(tempos do link) porque o KDE nao encontrou dois picos"
         branch = "kde_bimodal"
         outlier_method = "kde_bimodal"
     else:
-        lower_threshold = math.nextafter(_percentile(durations, 5), -math.inf)
+        lower_threshold = max(2.0, math.nextafter(_percentile(durations, 5), -math.inf))
         formula_lower = "P5(tempos do link)"
         branch = "kde_unimodal"
         outlier_method = "kde_unimodal"
@@ -985,7 +1019,7 @@ def _analyze_link_samples(
         return analysis, [], build_sample_details(lower_threshold=lower_threshold, upper_threshold=None, used_for_weight=set())
 
     kept_durations = sorted(sample.elapsed_seconds for sample in lower_cleaned)
-    q1 = _percentile(kept_durations, 25)
+    q1 = _percentile(kept_durations, 15)
     q3 = _percentile(kept_durations, 75)
     iqr = q3 - q1
     upper_threshold = math.nextafter(q3 + 1.5 * iqr, math.inf)
@@ -1123,6 +1157,7 @@ def _build_graph_payload(
         )
 
     _apply_force_layout(nodes, links)
+    corridor_meta = _apply_corridor_allocation(nodes, links)
     links.sort(
         key=lambda link: (
             str(link["source"]),
@@ -1147,6 +1182,7 @@ def _build_graph_payload(
             ),
             "node_count": len(nodes),
             "edge_count": len(links),
+            **corridor_meta,
             **outlier_meta,
         },
     }
@@ -1246,6 +1282,499 @@ def _target_distances(links: list[dict[str, Any]]) -> dict[tuple[str, str], floa
     return targets
 
 
+def _apply_corridor_allocation(
+    nodes: list[dict[str, Any]], links: list[dict[str, Any]]
+) -> dict[str, Any]:
+    """Agrupa produtos em corredores estimados sem usar o corredor cadastrado."""
+    if not nodes:
+        return {
+            "allocated_corridor_count": 0,
+            "allocated_corridor_method": "short_edge_bipartite_graph",
+        }
+
+    node_ids = [str(node["id"]) for node in nodes]
+    node_set = set(node_ids)
+    distances = _all_pairs_graph_distances(node_ids, links)
+    direct_distances = _direct_graph_distances(node_ids, links)
+    short_edge_percentile = _get_float_env(
+        "SMART_CART_SHORT_EDGE_PERCENTILE",
+        DEFAULT_SHORT_EDGE_PERCENTILE,
+    )
+    short_edge_max_degree = _get_int_env(
+        "SMART_CART_SHORT_EDGE_MAX_DEGREE",
+        DEFAULT_SHORT_EDGE_MAX_DEGREE,
+    )
+    short_edge_threshold = _short_edge_threshold(direct_distances, short_edge_percentile)
+    groups = _short_edge_bipartite_groups(
+        node_ids,
+        direct_distances,
+        threshold=short_edge_threshold,
+        max_degree=short_edge_max_degree,
+    )
+    corridor_count = _infer_corridor_count(node_ids, groups)
+    if groups:
+        groups = _normalize_corridor_groups(groups, corridor_count, distances)
+        assignments = {
+            node_id: (group_index, _group_seed(group, distances), group)
+            for group_index, group in enumerate(groups)
+            for node_id in group
+        }
+        seed_labels = {
+            group_index: f"C{group_index + 1:02d}"
+            for group_index in range(len(groups))
+        }
+    else:
+        seeds = _select_corridor_seeds(node_ids, distances, corridor_count)
+        assignments = {}
+        for node_id in node_ids:
+            seed, distance = min(
+                (
+                    (seed, distances.get(node_id, {}).get(seed, math.inf))
+                    for seed in seeds
+                ),
+                key=lambda item: (item[1], item[0]),
+            )
+            assignments[node_id] = (seeds.index(seed), seed, [node_id])
+        seed_labels = {
+            index: f"C{index + 1:02d}" for index in range(len(seeds))
+        }
+
+    for node in nodes:
+        node_id = str(node["id"])
+        group_index, seed, _ = assignments[node_id]
+        distance = distances.get(node_id, {}).get(seed, math.inf)
+        node["allocated_corridor"] = seed_labels[group_index]
+        node["corridor_seed"] = seed
+        node["corridor_distance_seconds"] = (
+            None if math.isinf(distance) else round(distance, 6)
+        )
+
+    for link in links:
+        source = str(link["source"])
+        target = str(link["target"])
+        if source in node_set and target in node_set:
+            link["same_allocated_corridor"] = (
+                assignments[source][0] == assignments[target][0]
+            )
+
+    return {
+        "allocated_corridor_count": len(seed_labels),
+        "allocated_corridor_method": (
+            "short_edge_bipartite_graph" if groups else "farthest_first_graph_distance"
+        ),
+        "allocated_corridor_seed_count": len(seed_labels),
+        "allocated_corridor_short_edge_percentile": short_edge_percentile,
+        "allocated_corridor_short_edge_threshold_seconds": (
+            None if math.isinf(short_edge_threshold) else round(short_edge_threshold, 6)
+        ),
+    }
+
+
+def _all_pairs_graph_distances(
+    node_ids: list[str], links: list[dict[str, Any]]
+) -> dict[str, dict[str, float]]:
+    direct_distances = _direct_graph_distances(node_ids, links)
+    adjacency: dict[str, list[tuple[str, float]]] = {node_id: [] for node_id in node_ids}
+    for link in links:
+        source = str(link["source"])
+        target = str(link["target"])
+        if source not in adjacency or target not in adjacency:
+            continue
+        elapsed = float(link.get("avg_elapsed_seconds") or math.inf)
+        if not math.isfinite(elapsed):
+            continue
+        weight = max(elapsed, 0.001)
+        if weight < direct_distances[source][target]:
+            direct_distances[source][target] = weight
+            direct_distances[target][source] = weight
+        adjacency[source].append((target, weight))
+        adjacency[target].append((source, weight))
+
+    shortest_distances = {
+        node_id: _dijkstra_distances(node_id, adjacency)
+        for node_id in node_ids
+    }
+    distances: dict[str, dict[str, float]] = {}
+    for source in node_ids:
+        distances[source] = {}
+        for target in node_ids:
+            direct_distance = direct_distances[source][target]
+            if math.isfinite(direct_distance):
+                distances[source][target] = direct_distance
+                continue
+
+            shortest_distance = shortest_distances[source][target]
+            distances[source][target] = (
+                shortest_distance * 1.25 if math.isfinite(shortest_distance) else math.inf
+            )
+    return distances
+
+
+def _direct_graph_distances(
+    node_ids: list[str], links: list[dict[str, Any]]
+) -> dict[str, dict[str, float]]:
+    distances: dict[str, dict[str, float]] = {
+        source: {
+            target: (0.0 if source == target else math.inf)
+            for target in node_ids
+        }
+        for source in node_ids
+    }
+    node_set = set(node_ids)
+    for link in links:
+        source = str(link["source"])
+        target = str(link["target"])
+        if source not in node_set or target not in node_set:
+            continue
+        elapsed = float(link.get("avg_elapsed_seconds") or math.inf)
+        if not math.isfinite(elapsed):
+            continue
+        weight = max(elapsed, 0.001)
+        if weight < distances[source][target]:
+            distances[source][target] = weight
+            distances[target][source] = weight
+    return distances
+
+
+def _short_edge_threshold(
+    direct_distances: dict[str, dict[str, float]],
+    percentile: float,
+) -> float:
+    values = [
+        distance
+        for source, targets in direct_distances.items()
+        for target, distance in targets.items()
+        if source < target and math.isfinite(distance) and distance > 0
+    ]
+    if not values:
+        return math.inf
+    bounded_percentile = min(max(percentile, 0.0), 100.0)
+    return _percentile(values, bounded_percentile)
+
+
+def _short_edge_bipartite_groups(
+    node_ids: list[str],
+    direct_distances: dict[str, dict[str, float]],
+    *,
+    threshold: float,
+    max_degree: int,
+) -> list[list[str]]:
+    if not math.isfinite(threshold):
+        return []
+
+    adjacency: dict[str, set[str]] = {node_id: set() for node_id in node_ids}
+    for node_id in node_ids:
+        nearest_neighbors = sorted(
+            (
+                (target, distance)
+                for target, distance in direct_distances[node_id].items()
+                if target != node_id and math.isfinite(distance)
+            ),
+            key=lambda item: (item[1], item[0]),
+        )[: max(max_degree, 1)]
+        for target, distance in nearest_neighbors:
+            if distance <= threshold + THRESHOLD_EPSILON:
+                adjacency[node_id].add(target)
+                adjacency[target].add(node_id)
+
+    seen: set[str] = set()
+    groups: list[list[str]] = []
+    for node_id in node_ids:
+        if node_id in seen:
+            continue
+
+        component = []
+        stack = [node_id]
+        seen.add(node_id)
+        while stack:
+            current = stack.pop()
+            component.append(current)
+            for neighbor in adjacency[current]:
+                if neighbor not in seen:
+                    seen.add(neighbor)
+                    stack.append(neighbor)
+
+        if len(component) == 1 and not adjacency[component[0]]:
+            continue
+
+        first_side, second_side = _bipartition_component(component, adjacency)
+        if first_side:
+            groups.append(sorted(first_side))
+        if second_side:
+            groups.append(sorted(second_side))
+
+    assigned = {node_id for group in groups for node_id in group}
+    for node_id in node_ids:
+        if node_id not in assigned:
+            groups.append([node_id])
+    return groups
+
+
+def _bipartition_component(
+    component: list[str],
+    adjacency: dict[str, set[str]],
+) -> tuple[list[str], list[str]]:
+    component_set = set(component)
+    color: dict[str, int] = {}
+    for start in component:
+        if start in color:
+            continue
+        color[start] = 0
+        queue = [start]
+        for current in queue:
+            for neighbor in adjacency[current]:
+                if neighbor not in component_set:
+                    continue
+                expected_color = 1 - color[current]
+                if neighbor not in color:
+                    color[neighbor] = expected_color
+                    queue.append(neighbor)
+
+    first_side = [node_id for node_id in component if color.get(node_id) == 0]
+    second_side = [node_id for node_id in component if color.get(node_id) == 1]
+    return first_side, second_side
+
+
+def _infer_corridor_count(node_ids: list[str], groups: list[list[str]]) -> int:
+    configured_count = os.getenv("SMART_CART_CORRIDOR_COUNT")
+    if configured_count:
+        try:
+            parsed_count = int(configured_count)
+        except ValueError:
+            parsed_count = 0
+        if parsed_count > 0:
+            return min(parsed_count, len(node_ids))
+
+    products_per_corridor = _get_int_env(
+        "SMART_CART_PRODUCTS_PER_CORRIDOR",
+        DEFAULT_PRODUCTS_PER_CORRIDOR,
+    )
+    estimated_by_size = math.ceil(len(node_ids) / max(products_per_corridor, 1))
+    return min(max(estimated_by_size, 1), len(node_ids))
+
+
+def _normalize_corridor_groups(
+    groups: list[list[str]],
+    corridor_count: int,
+    distances: dict[str, dict[str, float]],
+) -> list[list[str]]:
+    normalized = [sorted(group) for group in groups if group]
+    while len(normalized) > corridor_count:
+        group_index = min(
+            range(len(normalized)),
+            key=lambda index: (len(normalized[index]), normalized[index][0]),
+        )
+        group = normalized.pop(group_index)
+        nearest_index = min(
+            range(len(normalized)),
+            key=lambda index: _average_group_distance(group, normalized[index], distances),
+        )
+        normalized[nearest_index] = sorted(normalized[nearest_index] + group)
+
+    while len(normalized) < corridor_count:
+        group_index = max(
+            range(len(normalized)),
+            key=lambda index: (len(normalized[index]), normalized[index][0]),
+        )
+        group = normalized.pop(group_index)
+        first_group, second_group = _split_group_by_farthest_pair(group, distances)
+        normalized.append(first_group)
+        if second_group:
+            normalized.append(second_group)
+        else:
+            normalized.append(first_group)
+            break
+
+    return sorted(normalized, key=lambda group: (group[0], len(group)))
+
+
+def _split_group_by_farthest_pair(
+    group: list[str],
+    distances: dict[str, dict[str, float]],
+) -> tuple[list[str], list[str]]:
+    if len(group) <= 1:
+        return group, []
+
+    farthest_pair = max(
+        (
+            (_allocation_distance(distances, source, target), source, target)
+            for index, source in enumerate(group)
+            for target in group[index + 1 :]
+        ),
+        default=(0.0, group[0], group[-1]),
+    )
+    _, first_seed, second_seed = farthest_pair
+    first_group = []
+    second_group = []
+    for node_id in group:
+        if _allocation_distance(distances, node_id, first_seed) <= _allocation_distance(
+            distances, node_id, second_seed
+        ):
+            first_group.append(node_id)
+        else:
+            second_group.append(node_id)
+    return sorted(first_group), sorted(second_group)
+
+
+def _average_group_distance(
+    first_group: list[str],
+    second_group: list[str],
+    distances: dict[str, dict[str, float]],
+) -> float:
+    values = [
+        _allocation_distance(distances, source, target)
+        for source in first_group
+        for target in second_group
+    ]
+    return sum(values) / len(values) if values else math.inf
+
+
+def _group_seed(
+    group: list[str],
+    distances: dict[str, dict[str, float]],
+) -> str:
+    return min(
+        group,
+        key=lambda candidate: (
+            sum(_allocation_distance(distances, candidate, member) for member in group),
+            candidate,
+        ),
+    )
+
+
+def _get_int_env(name: str, default: int) -> int:
+    value = os.getenv(name)
+    if value is None:
+        return default
+    try:
+        parsed = int(value)
+    except ValueError:
+        return default
+    return parsed if parsed > 0 else default
+
+
+def _get_float_env(name: str, default: float) -> float:
+    value = os.getenv(name)
+    if value is None:
+        return default
+    try:
+        parsed = float(value)
+    except ValueError:
+        return default
+    return parsed if parsed > 0 else default
+
+
+def _dijkstra_distances(
+    source: str, adjacency: dict[str, list[tuple[str, float]]]
+) -> dict[str, float]:
+    distances = {node_id: math.inf for node_id in adjacency}
+    distances[source] = 0.0
+    queue = [(0.0, source)]
+    while queue:
+        current_distance, node_id = heapq.heappop(queue)
+        if current_distance > distances[node_id]:
+            continue
+        for neighbor, weight in adjacency[node_id]:
+            candidate = current_distance + weight
+            if candidate < distances[neighbor]:
+                distances[neighbor] = candidate
+                heapq.heappush(queue, (candidate, neighbor))
+    return distances
+
+
+def _select_corridor_seeds(
+    node_ids: list[str],
+    distances: dict[str, dict[str, float]],
+    corridor_count: int,
+) -> list[str]:
+    if corridor_count <= 1:
+        return [node_ids[0]]
+
+    farthest_pair: tuple[float, str, str] | None = None
+    for index, source in enumerate(node_ids):
+        for target in node_ids[index + 1 :]:
+            distance = distances.get(source, {}).get(target, math.inf)
+            if not math.isfinite(distance):
+                distance = 1_000_000.0
+            candidate = (distance, source, target)
+            if farthest_pair is None or candidate > farthest_pair:
+                farthest_pair = candidate
+
+    if farthest_pair is None:
+        seeds = [node_ids[0]]
+    else:
+        _, source, target = farthest_pair
+        seeds = [source, target]
+
+    while len(seeds) < corridor_count:
+        best_candidate: tuple[float, str] | None = None
+        for node_id in node_ids:
+            if node_id in seeds:
+                continue
+            nearest_seed_distance = min(
+                distances.get(node_id, {}).get(seed, math.inf) for seed in seeds
+            )
+            if not math.isfinite(nearest_seed_distance):
+                nearest_seed_distance = 1_000_000.0
+            candidate = (nearest_seed_distance, node_id)
+            if best_candidate is None or candidate > best_candidate:
+                best_candidate = candidate
+        if best_candidate is None:
+            break
+        seeds.append(best_candidate[1])
+
+    return _refine_corridor_seeds(node_ids, distances, seeds)
+
+
+def _refine_corridor_seeds(
+    node_ids: list[str],
+    distances: dict[str, dict[str, float]],
+    seeds: list[str],
+) -> list[str]:
+    """Refina as sementes escolhendo o medoide de cada grupo estimado."""
+    refined_seeds = list(seeds)
+    for _ in range(8):
+        groups: dict[str, list[str]] = {seed: [] for seed in refined_seeds}
+        for node_id in node_ids:
+            seed = min(
+                refined_seeds,
+                key=lambda item: (
+                    _allocation_distance(distances, node_id, item),
+                    item,
+                ),
+            )
+            groups[seed].append(node_id)
+
+        next_seeds = []
+        for seed, members in groups.items():
+            if not members:
+                next_seeds.append(seed)
+                continue
+            medoid = min(
+                members,
+                key=lambda candidate: (
+                    sum(_allocation_distance(distances, candidate, member) for member in members),
+                    candidate,
+                ),
+            )
+            next_seeds.append(medoid)
+
+        if next_seeds == refined_seeds:
+            break
+        refined_seeds = next_seeds
+
+    return refined_seeds
+
+
+def _allocation_distance(
+    distances: dict[str, dict[str, float]],
+    source: str,
+    target: str,
+) -> float:
+    distance = distances.get(source, {}).get(target, math.inf)
+    return distance if math.isfinite(distance) else 1_000_000.0
+
+
 def _percentile(values: list[float], percentile: float) -> float:
     """Calcula um percentil linear sobre uma lista ordenada de valores."""
     if not values:
@@ -1264,3 +1793,60 @@ def _percentile(values: list[float], percentile: float) -> float:
     upper_value = ordered[upper_index]
     fraction = position - lower_index
     return float(lower_value + (upper_value - lower_value) * fraction)
+
+
+def _kde_valley_between_first_two_peaks(values: list[float]) -> float | None:
+    """Estima o vale entre os dois primeiros picos usando KDE gaussiano simples."""
+    if len(values) < MIN_CLEAN_EDGE_SAMPLES:
+        return None
+
+    ordered = sorted(float(value) for value in values)
+    low = ordered[0]
+    high = ordered[-1]
+    if high - low <= THRESHOLD_EPSILON:
+        return None
+
+    mean = sum(ordered) / len(ordered)
+    variance = sum((value - mean) ** 2 for value in ordered) / max(len(ordered) - 1, 1)
+    standard_deviation = math.sqrt(variance)
+    bandwidth = max(
+        1.06 * standard_deviation * (len(ordered) ** -0.2),
+        (high - low) / 200.0,
+        THRESHOLD_EPSILON,
+    )
+    point_count = max(512, min(2048, len(ordered) * 16))
+    step = (high - low) / (point_count - 1)
+    grid = [low + step * index for index in range(point_count)]
+    normalizer = len(ordered) * bandwidth * math.sqrt(2 * math.pi)
+    density = [
+        sum(math.exp(-0.5 * ((point - value) / bandwidth) ** 2) for value in ordered) / normalizer
+        for point in grid
+    ]
+    max_density = max(density)
+    if max_density <= 0:
+        return None
+
+    min_height = max(max_density * 0.02, THRESHOLD_EPSILON)
+    min_distance = max(2, len(grid) // 50)
+    peaks: list[int] = []
+    last_peak = -min_distance
+    for index in range(1, len(density) - 1):
+        if density[index] < min_height:
+            continue
+        if density[index] <= density[index - 1] or density[index] <= density[index + 1]:
+            continue
+        if index - last_peak < min_distance:
+            if peaks and density[index] > density[peaks[-1]]:
+                peaks[-1] = index
+                last_peak = index
+            continue
+        peaks.append(index)
+        last_peak = index
+
+    if len(peaks) < 2:
+        return None
+
+    first_peak, second_peak = peaks[:2]
+    valley_segment = density[first_peak : second_peak + 1]
+    valley_index = first_peak + min(range(len(valley_segment)), key=valley_segment.__getitem__)
+    return float(grid[valley_index])

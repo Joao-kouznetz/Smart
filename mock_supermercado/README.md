@@ -32,7 +32,9 @@ python3 scripts/populate_simulated_purchases.py 300 --seed 42 --travel-time-dist
 
 `normal` varia ao redor do tempo esperado pela distancia, `right-tail` cria um
 pico com cauda longa para a direita, e `bimodal` mistura uma normal estreita com
-pico em 0.3s com uma segunda distribuicao de cauda longa.
+pico em 0.3s com uma segunda distribuicao de cauda longa. No `bimodal`, o grupo
+rapido recebe menos massa para o pico estreito nao dominar visualmente o segundo
+pico.
 
 Por padrao o script usa o banco configurado por `SMART_CART_DB_PATH`, ou
 `servidor_central/smart_cart.db` quando a variavel nao estiver definida.
