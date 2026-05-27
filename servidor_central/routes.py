@@ -22,6 +22,10 @@ from servidor_central.schemas import (
 )
 from servidor_central.services import cart_service, catalog_service, promotion_service
 
+from servidor_central.algorithms.recommendation_graph import (
+    build_recommendation_graph, load_recommendation_graph
+)
+
 
 router = APIRouter()
 
@@ -55,6 +59,16 @@ def get_product(barcode: str) -> ProductResponse:
     except (SupermarketAPIConfigError, SupermarketAPIError) as exc:
         _raise_external_service_error(exc)
 
+@router.get("/recommendation-graph")
+def get_recommendation_graph(min_cooccurrence: int = 3):
+    graph = load_recommendation_graph()
+    if graph is None:
+        graph = build_recommendation_graph(min_cooccurrence=min_cooccurrence)
+    return graph
+
+@router.post("/recommendation-graph/rebuild")
+def post_recommendation_graph_rebuild(min_cooccurrence: int = 3):
+    return build_recommendation_graph(min_cooccurrence=min_cooccurrence)
 
 @router.post(
     "/cart/{cart_id}/items",
