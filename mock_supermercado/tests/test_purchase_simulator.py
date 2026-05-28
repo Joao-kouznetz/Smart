@@ -1,9 +1,14 @@
+import csv
 import json
 import sqlite3
+from collections import defaultdict
 from datetime import datetime, timezone
 
 import pytest
 
+from mock_supermercado.simulation.layout import SUPERMARKET_LAYOUT
+from mock_supermercado.simulation.personas import PERSONAS
+from mock_supermercado.data import CATALOG_CSV_PATH
 from mock_supermercado.simulation.purchase_simulator import (
     BIMODAL_FAST_MEAN_SECONDS,
     SHELF_PICKUP_SECONDS,
@@ -59,6 +64,62 @@ TEST_PERSONAS = [
         ],
     },
 ]
+
+
+def _normalize_name(name):
+    return " ".join(name.strip().casefold().split())
+
+
+def test_supermarket_layout_and_personas_use_unique_canonical_products():
+    layout_by_barcode = {}
+    layout_names = defaultdict(list)
+
+    for aisle, products in SUPERMARKET_LAYOUT.items():
+        for product in products:
+            barcode = product["barcode"]
+            assert barcode not in layout_by_barcode
+            layout_by_barcode[barcode] = product
+            layout_names[_normalize_name(product["name"])].append((aisle, barcode))
+
+    assert {name: rows for name, rows in layout_names.items() if len(rows) > 1} == {}
+
+    for persona in PERSONAS:
+        persona_names = defaultdict(list)
+        for product in persona["products"]:
+            barcode = product["barcode"]
+            assert barcode in layout_by_barcode
+            assert product["name"] == layout_by_barcode[barcode]["name"]
+            persona_names[_normalize_name(product["name"])].append(barcode)
+
+        assert {
+            name: barcodes
+            for name, barcodes in persona_names.items()
+            if len(barcodes) > 1
+        } == {}
+
+
+def test_supermarket_layout_covers_catalog_with_even_spacing():
+    with CATALOG_CSV_PATH.open(encoding="utf-8", newline="") as catalog_file:
+        catalog_barcodes = {row["barcode"] for row in csv.DictReader(catalog_file)}
+
+    layout_barcodes = {
+        product["barcode"]
+        for products in SUPERMARKET_LAYOUT.values()
+        for product in products
+    }
+
+    assert layout_barcodes == catalog_barcodes
+
+    for products in SUPERMARKET_LAYOUT.values():
+        distances = [float(product["dist_to_aisle_m"]) for product in products]
+        if len(distances) < 3:
+            continue
+
+        deltas = [
+            distances[index + 1] - distances[index]
+            for index in range(len(distances) - 1)
+        ]
+        assert max(deltas) - min(deltas) < 1e-9
 
 
 def test_distance_between_products_in_same_aisle():
@@ -171,6 +232,14 @@ def test_populate_simulated_purchases_preserves_existing_data_by_default_and_wri
             """,
             (result.cart_ids[0],),
         ).fetchall()
+        purchase_rows = connection.execute(
+            """
+            SELECT ph.persona, pi.barcode
+            FROM purchase_history ph
+            JOIN purchase_items pi ON pi.purchase_id = ph.id
+            ORDER BY pi.barcode
+            """
+        ).fetchall()
 
     assert [row["id"] for row in carts] == ["existing", result.cart_ids[0]]
     assert len(interactions) == 3
@@ -179,6 +248,12 @@ def test_populate_simulated_purchases_preserves_existing_data_by_default_and_wri
     )
     assert json.loads(interactions[0]["payload_json"])["persona"] == "Persona A"
     assert "existing" in [row["id"] for row in carts]
+    assert {row["persona"] for row in purchase_rows} == {"Persona A"}
+    assert {row["barcode"] for row in purchase_rows} == {
+        "7891000100008",
+        "7891000100017",
+        "7891000100022",
+    }
 
 
 def test_populate_simulated_purchases_can_clear_existing_data_when_requested(
@@ -212,9 +287,13 @@ def test_populate_simulated_purchases_can_clear_existing_data_when_requested(
     with sqlite3.connect(db_path) as connection:
         connection.row_factory = sqlite3.Row
         carts = connection.execute("SELECT id FROM carts ORDER BY id").fetchall()
+        purchase_count = connection.execute(
+            "SELECT COUNT(*) AS count FROM purchase_history"
+        ).fetchone()["count"]
 
     assert result.people_count == 1
     assert [row["id"] for row in carts] == [result.cart_ids[0]]
+    assert purchase_count == 1
 
 
 def test_populate_simulated_purchases_aggregates_repeated_products(tmp_path):

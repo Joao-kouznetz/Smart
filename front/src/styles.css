@@ -22,6 +22,7 @@
 
 * {
   box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
 }
 
 html,
@@ -39,6 +40,35 @@ body {
 button,
 input {
   font: inherit;
+}
+
+button,
+.search-bar--button,
+.search-result-card,
+.cart-item-card,
+.promotion-card,
+.chip,
+.promotion-card__tag {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+input,
+textarea,
+[contenteditable="true"] {
+  -webkit-user-select: text;
+  user-select: text;
+  touch-action: auto;
+}
+
+.app-shell,
+.overlay-shell,
+.panel,
+.promotion-rail,
+.cart-items-scroll,
+.search-results-live {
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 .visually-hidden {
@@ -319,7 +349,7 @@ input {
   border-radius: 18px;
   padding: 0.75rem 1rem;
   font-weight: 800;
-  letter-spacing: 0.01em;
+  letter-spacing: 0;
   cursor: pointer;
   transition: transform 120ms ease, opacity 120ms ease;
 }
@@ -395,12 +425,35 @@ input {
 
 .cart-items-scroll {
   display: grid;
+  align-content: start;
+  grid-auto-rows: max-content;
   gap: 0.7rem;
   min-height: 0;
   overflow: auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
   flex: 1;
+}
+
+.cart-items-scroll *,
+.promotion-rail *,
+.search-results-live * {
+  touch-action: pan-y;
+}
+
+.cart-items-scroll button,
+.promotion-rail button,
+.search-results-live button,
+.keyboard-container *,
+.touch-button {
+  touch-action: manipulation;
+}
+
+.cart-items-scroll .touch-button,
+.promotion-rail .touch-button,
+.search-results-live .touch-button {
+  touch-action: pan-y;
 }
 
 .search-result-card,
@@ -477,7 +530,8 @@ input {
 
 .cart-item-card {
   grid-template-columns: minmax(0, 1fr) auto;
-  align-items: end;
+  align-items: center;
+  min-height: 8.25rem;
 }
 
 .cart-item-card__topline {
@@ -488,8 +542,19 @@ input {
 }
 
 .cart-item-card__subtotal {
+  flex: 0 0 auto;
   font-weight: 800;
   color: var(--green-dark);
+}
+
+.cart-item-card__content {
+  min-width: 0;
+}
+
+.cart-item-card .touch-button {
+  align-self: center;
+  min-width: 7.75rem;
+  white-space: nowrap;
 }
 
 .cart-item-card__chips,
@@ -536,6 +601,7 @@ input {
   padding-bottom: 0.25rem;
   overscroll-behavior-y: contain;
   -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
 }
 
 .promotion-card {
@@ -636,6 +702,8 @@ input {
   padding-right: 0.5rem;
   /* Ensure scrolling feels good */
   -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+  touch-action: pan-y;
 }
 
 .overlay-card--fullscreen .keyboard-container {
@@ -774,6 +842,15 @@ input {
     min-height: 18rem;
   }
 
+  .cart-item-card {
+    grid-template-columns: minmax(0, 1fr);
+    min-height: 0;
+  }
+
+  .cart-item-card .touch-button {
+    width: 100%;
+  }
+
   .overlay-card {
     max-height: 94vh;
   }
@@ -783,6 +860,204 @@ input {
   .keyboard-key--enter {
     min-width: auto;
     flex: 1 1 30%;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 540px) {
+  .app-shell {
+    padding: 0.4rem;
+  }
+
+  .dashboard-shell,
+  .layout-grid,
+  .workspace-column--left {
+    gap: 0.4rem;
+  }
+
+  .top-strip {
+    gap: 0.4rem;
+  }
+
+  .search-bar,
+  .device-card {
+    min-height: 3rem;
+    border-radius: 16px;
+    padding: 0 0.8rem;
+  }
+
+  .device-card {
+    min-width: 7.5rem;
+  }
+
+  .device-card strong {
+    max-width: 9rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .layout-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(14.5rem, 0.78fr);
+  }
+
+  .panel {
+    border-radius: 16px;
+    padding: 0.55rem;
+  }
+
+  .panel__header {
+    margin-bottom: 0.35rem;
+    min-height: 2.25rem;
+  }
+
+  .panel__header h2 {
+    font-size: 0.95rem;
+  }
+
+  .eyebrow,
+  .cart-summary__label,
+  .device-card__label {
+    font-size: 0.66rem;
+  }
+
+  .promotion-rail {
+    grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
+    gap: 0.4rem;
+  }
+
+  .promotion-card {
+    border-radius: 12px;
+    gap: 0.15rem;
+    padding: 0.45rem;
+  }
+
+  .promotion-card h3 {
+    font-size: 0.82rem;
+  }
+
+  .promotion-card p,
+  .promotion-card__meta {
+    font-size: 0.72rem;
+  }
+
+  .cart-summary {
+    gap: 0.4rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .cart-summary > div,
+  .cart-total-strip {
+    border-radius: 12px;
+    padding: 0.5rem 0.6rem;
+  }
+
+  .cart-panel__body,
+  .cart-panel__footer,
+  .cart-items-scroll {
+    gap: 0.4rem;
+  }
+
+  .cart-item-card {
+    border-radius: 12px;
+    gap: 0.45rem;
+    min-height: 5.75rem;
+    padding: 0.55rem;
+  }
+
+  .cart-item-card__chips,
+  .promotion-card__meta {
+    gap: 0.25rem;
+  }
+
+  .chip,
+  .promotion-card__tag {
+    min-height: 1.55rem;
+    padding: 0.2rem 0.5rem;
+  }
+
+  .touch-button {
+    border-radius: 12px;
+    min-height: 2.55rem;
+    padding: 0.5rem 0.7rem;
+  }
+
+  .overlay-card--fullscreen {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(20rem, 0.9fr);
+    grid-template-rows: auto auto minmax(0, 1fr);
+    padding: 0.55rem;
+  }
+
+  .overlay-card__header {
+    align-items: center;
+    grid-column: 1 / -1;
+  }
+
+  .overlay-card__header h2 {
+    font-size: 1rem;
+  }
+
+  .search-results-live {
+    grid-column: 1;
+    grid-row: 3;
+    margin: 0.4rem 0;
+  }
+
+  .overlay-card--fullscreen .search-bar--active {
+    grid-column: 1 / -1;
+    margin: 0.25rem 0;
+  }
+
+  .overlay-results {
+    grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+    gap: 0.5rem;
+  }
+
+  .search-result-card {
+    border-radius: 12px;
+    gap: 0.45rem;
+    padding: 0.55rem;
+  }
+
+  .keyboard-container {
+    align-self: end;
+    grid-column: 2;
+    grid-row: 3;
+    overflow: hidden;
+    padding: 0.35rem 0 0.15rem;
+  }
+
+  .overlay-card--fullscreen .keyboard-container {
+    border-top: 0;
+    margin-top: 0;
+  }
+
+  .hg-button {
+    height: 2.25rem !important;
+    border-radius: 8px !important;
+    font-size: 0.78rem !important;
+  }
+
+  .hg-button-enter {
+    min-width: 7rem !important;
+  }
+
+  .hg-button-space {
+    min-width: 9rem !important;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 420px) {
+  .device-card {
+    display: none;
+  }
+
+  .layout-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(13rem, 0.72fr);
+  }
+
+  .promotion-card p {
+    -webkit-line-clamp: 1;
   }
 }
 
@@ -802,6 +1077,7 @@ input {
   gap: 1rem;
   max-height: 100vh;
   overflow: auto;
+  touch-action: pan-y;
   padding: 1.25rem;
 }
 
@@ -1307,6 +1583,7 @@ input {
   display: grid;
   gap: 0.85rem;
   overflow: auto;
+  touch-action: pan-y;
   padding: 0.9rem;
 }
 

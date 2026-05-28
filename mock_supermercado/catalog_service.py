@@ -1,4 +1,5 @@
 import csv
+import unicodedata
 from pathlib import Path
 from typing import Any
 
@@ -26,6 +27,31 @@ def _read_catalog(csv_path: Path | None = None) -> list[dict[str, str | float]]:
                 }
             )
     return products
+
+
+def _normalize_product_name(name: str) -> str:
+    normalized = unicodedata.normalize("NFKD", name.strip().casefold())
+    without_accents = "".join(
+        char for char in normalized if not unicodedata.combining(char)
+    )
+    return " ".join(without_accents.split())
+
+
+def _dedupe_products_by_name(
+    products: list[dict[str, str | float]],
+) -> list[dict[str, str | float]]:
+    seen_names = set()
+    deduped_products = []
+
+    for product in products:
+        name_key = _normalize_product_name(str(product["name"]))
+        if name_key in seen_names:
+            continue
+
+        seen_names.add(name_key)
+        deduped_products.append(product)
+
+    return deduped_products
 
 
 def read_promotions(csv_path: Path | None = None) -> list[dict[str, Any]]:
@@ -61,9 +87,10 @@ def get_product_by_barcode(barcode: str, csv_path: Path | None = None) -> dict[s
 
 
 def search_products(query: str, csv_path: Path | None = None) -> list[dict[str, str | float]]:
-    normalized_query = query.strip().lower()
-    return [
+    normalized_query = _normalize_product_name(query)
+    matching_products = [
         product
         for product in _read_catalog(csv_path)
-        if normalized_query in str(product["name"]).lower()
+        if normalized_query in _normalize_product_name(str(product["name"]))
     ]
+    return _dedupe_products_by_name(matching_products)

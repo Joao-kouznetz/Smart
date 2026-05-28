@@ -261,6 +261,16 @@ function App() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [keyboardOpen]);
 
+  useEffect(() => {
+    if (!keyboardOpen) return;
+
+    const frameId = window.requestAnimationFrame(() => {
+      keyboardRef.current?.setInput(searchQuery);
+    });
+
+    return () => window.cancelAnimationFrame(frameId);
+  }, [keyboardOpen, searchQuery]);
+
   function onVirtualKeyboardChange(input: string) {
     setSearchQuery(input);
   }
@@ -437,7 +447,10 @@ function App() {
 
             <div className="keyboard-container">
               <Keyboard
-                keyboardRef={(r) => (keyboardRef.current = r)}
+                keyboardRef={(r) => {
+                  keyboardRef.current = r;
+                  r?.setInput(searchQuery);
+                }}
                 onChange={onVirtualKeyboardChange}
                 onKeyPress={onVirtualKeyPress}
                 inputName="searchQuery"

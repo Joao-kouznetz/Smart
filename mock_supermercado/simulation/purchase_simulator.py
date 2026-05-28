@@ -192,6 +192,9 @@ def populate_simulated_purchases(
                 _insert_interactions(
                     connection, cart_id, route, event_times, persona["name"]
                 )
+                _insert_purchase_history(
+                    connection, route, catalog, event_times[-1], persona["name"]
+                )
 
     return SimulationResult(
         people_count=len(cart_ids),
@@ -215,10 +218,18 @@ def _connect(db_path: Path) -> sqlite3.Connection:
 def _clear_simulation_data(connection: sqlite3.Connection) -> None:
     """Remove todos os dados simulados mantendo o schema intacto."""
     connection.executescript("""
+        DELETE FROM purchase_items;
+        DELETE FROM purchase_history;
         DELETE FROM cart_interactions;
         DELETE FROM cart_items;
         DELETE FROM carts;
-        DELETE FROM sqlite_sequence WHERE name IN ('cart_interactions', 'cart_items', 'carts');
+        DELETE FROM sqlite_sequence WHERE name IN (
+            'purchase_items',
+            'purchase_history',
+            'cart_interactions',
+            'cart_items',
+            'carts'
+        );
         """)
 
 
@@ -520,6 +531,59 @@ def _insert_cart_items(
                 catalog_product["aisle"],
                 first_seen_at[barcode].isoformat(),
                 updated_at.isoformat(),
+            ),
+        )
+
+
+def _insert_purchase_history(
+    connection: sqlite3.Connection,
+    route: list[dict[str, str]],
+    catalog: dict[str, dict[str, Any]],
+    purchase_date: datetime,
+    persona_name: str,
+) -> None:
+    """Grava a compra simulada no historico usado pelas recomendacoes."""
+    quantities = Counter(product["barcode"] for product in route)
+    total_amount = 0.0
+    total_items = 0
+
+    for barcode, quantity in quantities.items():
+        catalog_product = catalog[barcode]
+        total_amount += catalog_product["price"] * quantity
+        total_items += quantity
+
+    cursor = connection.execute(
+        """
+        INSERT INTO purchase_history (persona, purchase_date, total_amount, total_items)
+        VALUES (?, ?, ?, ?)
+        """,
+        (persona_name, purchase_date.isoformat(), round(total_amount, 2), total_items),
+    )
+    purchase_id = cursor.lastrowid
+
+    for barcode, quantity in quantities.items():
+        catalog_product = catalog[barcode]
+        connection.execute(
+            """
+            INSERT INTO purchase_items (
+                purchase_id,
+                barcode,
+                name,
+                price,
+                quantity,
+                category,
+                aisle
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                purchase_id,
+                barcode,
+                catalog_product["name"],
+                catalog_product["price"],
+                quantity,
+                catalog_product["category"],
+                catalog_product["aisle"],
             ),
         )
 
