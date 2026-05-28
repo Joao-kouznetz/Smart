@@ -15,6 +15,7 @@ from servidor_central.schemas import (
     LocationResponse,
     LocationPromotionsResponse,
     RecommendationResponse,
+    PromotionResponse,
 )
 from servidor_central.services import catalog_service, promotion_service
 
@@ -274,12 +275,25 @@ def delete_cart_item(cart_id: str, item_id: int) -> CartResponse:
 def get_cart_recommendations(cart_id: str) -> RecommendationResponse:
     cart = get_cart(cart_id)
     try:
-        all_promotions = promotion_service.get_promotions()
+        all_products = catalog_service.search_products("")
     except SupermarketAPIError:
-        all_promotions = []
+        all_products = []
+        
+    product_recommendations = []
+    for p in all_products:
+        product_recommendations.append(PromotionResponse(
+            id=f"rec-{p.barcode}",
+            title=p.name,
+            description=f"Recomendado para você: R$ {p.price:.2f}",
+            product_barcode=p.barcode,
+            discount_type=None,
+            discount_value=0.0,
+            aisle=p.aisle
+        ))
+
     return generate_recommendations(
         cart,
-        all_promotions,
+        product_recommendations,
         last_barcode=get_last_added_barcode(cart_id),
     )
 
@@ -288,8 +302,14 @@ def get_cart_location_promotions(cart_id: str) -> LocationPromotionsResponse:
     cart = get_cart(cart_id)
     try:
         all_promotions = promotion_service.get_promotions()
+        all_products = catalog_service.search_products("")
+        pmap = {p.barcode: p for p in all_products}
+        for promo in all_promotions:
+            if promo.product_barcode and promo.product_barcode in pmap:
+                promo.title = f"{pmap[promo.product_barcode].name} com promocao"
     except SupermarketAPIError:
         all_promotions = []
+        
     location_result = infer_location(cart, last_barcode=get_last_added_barcode(cart_id))
     return find_location_promotions(cart, location_result, all_promotions)
 

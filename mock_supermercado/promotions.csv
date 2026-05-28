@@ -1,74 +1,74 @@
 id,title,description,product_barcode,discount_type,discount_value,aisle
 promo-gen-1,Cenoura Especial 1 kg,Desconto fixo de R$ 20.00 no produto Cenoura Especial 1 kg.,7891000100030,fixed,20.0,B2
-promo-gen-2,Amaciante Artesanal 2 L,Desconto fixo de R$ 20.00 no produto Amaciante Artesanal 2 L.,7891000100061,fixed,20.0,
+promo-gen-2,Amaciante Artesanal 2 L,Desconto fixo de R$ 20.00 no produto Amaciante Artesanal 2 L.,7891000100015,fixed,20.0,
 promo-gen-3,Óleo Tradicional 500 mL,Ganhe 25% de desconto em Óleo Tradicional 500 mL!,7891000100017,percentage,25.0,B1
 promo-gen-4,Cerveja Artesanal 2 L,Ganhe 5% de desconto em Cerveja Artesanal 2 L!,7891000100003,percentage,5.0,C1
 promo-gen-5,Batata Natural 500 g,Desconto fixo de R$ 5.00 no produto Batata Natural 500 g.,7891000100038,fixed,5.0,E1
-promo-gen-6,Seleção Especial: Amaciante Clássico 1 L,Desconto fixo de R$ 10.00 no produto Amaciante Clássico 1 L.,7891000100040,fixed,10.0,F2
+promo-gen-6,Seleção Especial: Amaciante Clássico 1 L,Desconto fixo de R$ 10.00 no produto Amaciante Clássico 1 L.,7891000100015,fixed,10.0,F2
 promo-gen-7,Sabonete Especial 1 L,Ganhe 15% de desconto em Sabonete Especial 1 L!,7891000100048,percentage,15.0,
 promo-gen-8,Liquidação Total: Batata Artesanal 500 g,Desconto fixo de R$ 20.00 no produto Batata Artesanal 500 g.,7891000100004,fixed,20.0,
 promo-gen-9,Clube de Descontos: Água Sanitária Econômico 500 mL,Desconto fixo de R$ 5.00 no produto Água Sanitária Econômico 500 mL.,7891000100109,fixed,5.0,
-promo-gen-10,Promoção de Verão: Shampoo Clássico 1 unidade,Desconto fixo de R$ 1.45 no produto Shampoo Clássico 1 unidade.,7891000100066,fixed,1.45,
-promo-gen-11,Desconto do Dia: Amaciante Especial 1 L,Ganhe 40% de desconto em Amaciante Especial 1 L!,7891000100097,percentage,40.0,D2
-promo-gen-12,Só Hoje: Feijão Clássico 1 kg,Desconto fixo de R$ 5.00 no produto Feijão Clássico 1 kg.,7891000100124,fixed,5.0,F1
-promo-gen-13,Clube de Descontos: Salsicha Especial 500 g,Ganhe 30% de desconto em Salsicha Especial 500 g!,7891000100085,percentage,30.0,A2
-promo-gen-14,Clube de Descontos: Tomate Especial 1 kg,Ganhe 25% de desconto em Tomate Especial 1 kg!,7891000100117,percentage,25.0,E1
-promo-gen-15, Shampoo Seleção 2 L,Ganhe 20% de desconto em Shampoo Seleção 2 L!,7891000100112,percentage,20.0,
-promo-gen-16,Oferta Relâmpago: Pão Francês Seleção 2 kg,Desconto fixo de R$ 2.00 no produto Pão Francês Seleção 2 kg.,7891000100031,fixed,2.0,D2
+promo-gen-10,Promoção de Verão: Shampoo Clássico 1 unidade,Desconto fixo de R$ 1.45 no produto Shampoo Clássico 1 unidade.,7891000100006,fixed,1.45,
+promo-gen-11,Desconto do Dia: Amaciante Especial 1 L,Ganhe 40% de desconto em Amaciante Especial 1 L!,7891000100015,percentage,40.0,D2
+promo-gen-12,Só Hoje: Feijão Clássico 1 kg,Desconto fixo de R$ 5.00 no produto Feijão Clássico 1 kg.,7891000100050,fixed,5.0,F1
+promo-gen-13,Clube de Descontos: Salsicha Especial 500 g,Ganhe 30% de desconto em Salsicha Especial 500 g!,7891000100029,percentage,30.0,A2
+promo-gen-14,Clube de Descontos: Tomate Especial 1 kg,Ganhe 25% de desconto em Tomate Especial 1 kg!,7891000100012,percentage,25.0,E1
+promo-gen-15, Shampoo Seleção 2 L,Ganhe 20% de desconto em Shampoo Seleção 2 L!,7891000100006,percentage,20.0,
+promo-gen-16,Oferta Relâmpago: Pão Francês Seleção 2 kg,Desconto fixo de R$ 2.00 no produto Pão Francês Seleção 2 kg.,7891000100014,fixed,2.0,D2
 promo-gen-17,Promoção de Verão: Pão Francês Tradicional 500 g,Desconto fixo de R$ 15.00 no produto Pão Francês Tradicional 500 g.,7891000100014,fixed,15.0,A2
 promo-gen-18,Oferta Relâmpago: Requeijão Seleção 1 L,Ganhe 30% de desconto em Requeijão Seleção 1 L!,7891000100091,percentage,30.0,E2
-promo-gen-19,Mega Oferta: Requeijão Clássico 1 L,Desconto fixo de R$ 5.00 no produto Requeijão Clássico 1 L.,7891000100094,fixed,5.0,
+promo-gen-19,Mega Oferta: Requeijão Clássico 1 L,Desconto fixo de R$ 5.00 no produto Requeijão Clássico 1 L.,7891000100091,fixed,5.0,
 promo-gen-20, Vinho Tinto Clássico 2 L,Ganhe 25% de desconto em Vinho Tinto Clássico 2 L!,7891000100041,percentage,25.0,E1
-promo-gen-21,Clube de Descontos: Sabonete Artesanal 1 L,Desconto fixo de R$ 2.00 no produto Sabonete Artesanal 1 L.,7891000100137,fixed,2.0,
-promo-gen-22, Leite Condensado Tradicional 2 L,Desconto fixo de R$ 1.00 no produto Leite Condensado Tradicional 2 L.,7891000100036,fixed,1.0,
+promo-gen-21,Clube de Descontos: Sabonete Artesanal 1 L,Desconto fixo de R$ 2.00 no produto Sabonete Artesanal 1 L.,7891000100048,fixed,2.0,
+promo-gen-22, Leite Condensado Tradicional 2 L,Desconto fixo de R$ 1.00 no produto Leite Condensado Tradicional 2 L.,7891000100028,fixed,1.0,
 promo-gen-23,Promoção de Verão: Farinha Natural 1 kg,Desconto fixo de R$ 5.00 no produto Farinha Natural 1 kg.,7891000100099,fixed,5.0,
-promo-gen-24,Oferta Relâmpago: Bolo de Cenoura Seleção 1 kg,Ganhe 5% de desconto em Bolo de Cenoura Seleção 1 kg!,7891000100138,percentage,5.0,F2
+promo-gen-24,Oferta Relâmpago: Bolo de Cenoura Seleção 1 kg,Ganhe 5% de desconto em Bolo de Cenoura Seleção 1 kg!,7891000100104,percentage,5.0,F2
 promo-gen-25,Oferta Relâmpago: Iogurte Natural Natural 2 L,Ganhe 30% de desconto em Iogurte Natural Natural 2 L!,7891000100146,percentage,30.0,B1
-promo-gen-26,Clube de Descontos: Creme de Leite Tradicional 1 L,Ganhe 15% de desconto em Creme de Leite Tradicional 1 L!,7891000100126,percentage,15.0,C2
+promo-gen-26,Clube de Descontos: Creme de Leite Tradicional 1 L,Ganhe 15% de desconto em Creme de Leite Tradicional 1 L!,7891000100047,percentage,15.0,C2
 promo-gen-27,Desconto do Dia: Manteiga Artesanal 1 kg,Ganhe 25% de desconto em Manteiga Artesanal 1 kg!,7891000100022,percentage,25.0,A1
-promo-gen-28,Seleção Especial: Esponja de Aço Seleção 2 kg,Desconto fixo de R$ 1.00 no produto Esponja de Aço Seleção 2 kg.,7891000100120,fixed,1.0,E2
+promo-gen-28,Seleção Especial: Esponja de Aço Seleção 2 kg,Desconto fixo de R$ 1.00 no produto Esponja de Aço Seleção 2 kg.,7891000100025,fixed,1.0,E2
 promo-gen-29,Detergente Econômico 1 L,Ganhe 25% de desconto em Detergente Econômico 1 L!,7891000100013,percentage,25.0,B2
 promo-gen-30,Desconto do Dia: Pão de Forma Tradicional 1 kg,Ganhe 15% de desconto em Pão de Forma Tradicional 1 kg!,7891000100020,percentage,15.0,F1
-promo-gen-31,Desconto do Dia: Biscoito Recheado Artesanal 1 pacote,Ganhe 10% de desconto em Biscoito Recheado Artesanal 1 pacote!,7891000100071,percentage,10.0,
+promo-gen-31,Desconto do Dia: Biscoito Recheado Artesanal 1 pacote,Ganhe 10% de desconto em Biscoito Recheado Artesanal 1 pacote!,7891000100043,percentage,10.0,
 promo-gen-32,Mega Oferta: Bolo de Cenoura Especial 1 pacote,Ganhe 40% de desconto em Bolo de Cenoura Especial 1 pacote!,7891000100104,percentage,40.0,
-promo-gen-33,Preço Baixo: Biscoito Recheado Econômico 500 g,Ganhe 15% de desconto em Biscoito Recheado Econômico 500 g!,7891000100105,percentage,15.0,C2
-promo-gen-34,Oferta Relâmpago: Presunto Artesanal 500 g,Ganhe 25% de desconto em Presunto Artesanal 500 g!,7891000100023,percentage,25.0,
+promo-gen-33,Preço Baixo: Biscoito Recheado Econômico 500 g,Ganhe 15% de desconto em Biscoito Recheado Econômico 500 g!,7891000100043,percentage,15.0,C2
+promo-gen-34,Oferta Relâmpago: Presunto Artesanal 500 g,Ganhe 25% de desconto em Presunto Artesanal 500 g!,7891000100008,percentage,25.0,
 promo-gen-35,Clube de Descontos: Picanha Econômico 1 kg,Desconto fixo de R$ 2.00 no produto Picanha Econômico 1 kg.,7891000100010,fixed,2.0,F2
-promo-gen-36,Oferta Relâmpago: Shampoo Econômico 500 mL,Desconto fixo de R$ 0.73 no produto Shampoo Econômico 500 mL.,7891000100063,fixed,0.73,D1
+promo-gen-36,Oferta Relâmpago: Shampoo Econômico 500 mL,Desconto fixo de R$ 0.73 no produto Shampoo Econômico 500 mL.,7891000100006,fixed,0.73,D1
 promo-gen-37,Biscoito Recheado Seleção 1 pacote,Ganhe 40% de desconto em Biscoito Recheado Seleção 1 pacote!,7891000100043,percentage,40.0,A1
-promo-gen-38,Clube de Descontos: Queijo Mussarela Seleção 2 kg,Ganhe 5% de desconto em Queijo Mussarela Seleção 2 kg!,7891000100131,percentage,5.0,B1
+promo-gen-38,Clube de Descontos: Queijo Mussarela Seleção 2 kg,Ganhe 5% de desconto em Queijo Mussarela Seleção 2 kg!,7891000100055,percentage,5.0,B1
 promo-gen-39,Especial de Final de Semana: Leite Condensado Tradicional 1 L,Ganhe 40% de desconto em Leite Condensado Tradicional 1 L!,7891000100028,percentage,40.0,C2
-promo-gen-40,Promoção de Verão: Açúcar Seleção 1 kg,Desconto fixo de R$ 2.00 no produto Açúcar Seleção 1 kg.,7891000100090,fixed,2.0,C2
-promo-gen-41,Detergente Econômico 2 L,Ganhe 10% de desconto em Detergente Econômico 2 L!,7891000100096,percentage,10.0,
-promo-gen-42,Preço Baixo: Biscoito Recheado Econômico 1 kg,Ganhe 25% de desconto em Biscoito Recheado Econômico 1 kg!,7891000100068,percentage,25.0,
-promo-gen-43,Salsicha Seleção 1 kg,Desconto fixo de R$ 2.00 no produto Salsicha Seleção 1 kg.,7891000100032,fixed,2.0,
-promo-gen-44,Oferta Relâmpago: Desinfetante Seleção 1 L,Ganhe 5% de desconto em Desinfetante Seleção 1 L!,7891000100080,percentage,5.0,
+promo-gen-40,Promoção de Verão: Açúcar Seleção 1 kg,Desconto fixo de R$ 2.00 no produto Açúcar Seleção 1 kg.,7891000100000,fixed,2.0,C2
+promo-gen-41,Detergente Econômico 2 L,Ganhe 10% de desconto em Detergente Econômico 2 L!,7891000100013,percentage,10.0,
+promo-gen-42,Preço Baixo: Biscoito Recheado Econômico 1 kg,Ganhe 25% de desconto em Biscoito Recheado Econômico 1 kg!,7891000100043,percentage,25.0,
+promo-gen-43,Salsicha Seleção 1 kg,Desconto fixo de R$ 2.00 no produto Salsicha Seleção 1 kg.,7891000100029,fixed,2.0,
+promo-gen-44,Oferta Relâmpago: Desinfetante Seleção 1 L,Ganhe 5% de desconto em Desinfetante Seleção 1 L!,7891000100035,percentage,5.0,
 promo-gen-45,Especial de Final de Semana: Biscoito Recheado Natural 2 kg,Desconto fixo de R$ 15.00 no produto Biscoito Recheado Natural 2 kg.,7891000100127,fixed,15.0,
-promo-gen-46,Especial de Final de Semana: Biscoito Recheado Clássico 2 kg,Ganhe 15% de desconto em Biscoito Recheado Clássico 2 kg!,7891000100108,percentage,15.0,
+promo-gen-46,Especial de Final de Semana: Biscoito Recheado Clássico 2 kg,Ganhe 15% de desconto em Biscoito Recheado Clássico 2 kg!,7891000100043,percentage,15.0,
 promo-gen-47,Preço Baixo: Desodorante Econômico 1 kg,Ganhe 25% de desconto em Desodorante Econômico 1 kg!,7891000100024,percentage,25.0,D2
-promo-gen-48,Oferta Relâmpago: Salsicha Econômico 1 kg,Ganhe 50% de desconto em Salsicha Econômico 1 kg!,7891000100144,percentage,50.0,B1
-promo-gen-49,Mega Oferta: Pão de Forma Econômico 500 g,Desconto fixo de R$ 20.00 no produto Pão de Forma Econômico 500 g.,7891000100060,fixed,20.0,
+promo-gen-48,Oferta Relâmpago: Salsicha Econômico 1 kg,Ganhe 50% de desconto em Salsicha Econômico 1 kg!,7891000100029,percentage,50.0,B1
+promo-gen-49,Mega Oferta: Pão de Forma Econômico 500 g,Desconto fixo de R$ 20.00 no produto Pão de Forma Econômico 500 g.,7891000100020,fixed,20.0,
 promo-gen-50,Milho Artesanal 2 kg,Desconto fixo de R$ 20.00 no produto Milho Artesanal 2 kg.,7891000100005,fixed,20.0,
 promo-gen-51,Clube de Descontos: Torrada Natural 500 g,Ganhe 25% de desconto em Torrada Natural 500 g!,7891000100074,percentage,25.0,E1
 promo-gen-52,Oferta Relâmpago: Feijão Tradicional 1 kg,Ganhe 15% de desconto em Feijão Tradicional 1 kg!,7891000100050,percentage,15.0,
-promo-gen-53,Clube de Descontos: Frango Inteiro Tradicional 1 kg,Ganhe 30% de desconto em Frango Inteiro Tradicional 1 kg!,7891000100118,percentage,30.0,F1
-promo-gen-54,Salsicha Tradicional 500 g,Desconto fixo de R$ 10.00 no produto Salsicha Tradicional 500 g.,7891000100111,fixed,10.0,C2
+promo-gen-53,Clube de Descontos: Frango Inteiro Tradicional 1 kg,Ganhe 30% de desconto em Frango Inteiro Tradicional 1 kg!,7891000100001,percentage,30.0,F1
+promo-gen-54,Salsicha Tradicional 500 g,Desconto fixo de R$ 10.00 no produto Salsicha Tradicional 500 g.,7891000100029,fixed,10.0,C2
 promo-gen-55,Clube de Descontos: Sabão em Pó Clássico 2 kg,Desconto fixo de R$ 1.00 no produto Sabão em Pó Clássico 2 kg.,7891000100011,fixed,1.0,D1
 promo-gen-56,Alface Clássico 1 kg,Desconto fixo de R$ 10.00 no produto Alface Clássico 1 kg.,7891000100093,fixed,10.0,E1
 promo-gen-57,Esponja de Aço Seleção 1 kg,Desconto fixo de R$ 10.00 no produto Esponja de Aço Seleção 1 kg.,7891000100025,fixed,10.0,C1
 promo-gen-58,Torrada Tradicional 2 kg,Ganhe 30% de desconto em Torrada Tradicional 2 kg!,7891000100009,percentage,30.0,B2
-promo-gen-59,Promoção de Verão: Batata Seleção 2 kg,Ganhe 15% de desconto em Batata Seleção 2 kg!,7891000100143,percentage,15.0,B1
-promo-gen-60,Só Hoje: Açúcar Especial 500 g,Desconto fixo de R$ 5.00 no produto Açúcar Especial 500 g.,7891000100052,fixed,5.0,
-promo-gen-61,Só Hoje: Água Mineral Especial 2 L,Ganhe 25% de desconto em Água Mineral Especial 2 L!,7891000100125,percentage,25.0,D1
+promo-gen-59,Promoção de Verão: Batata Seleção 2 kg,Ganhe 15% de desconto em Batata Seleção 2 kg!,7891000100004,percentage,15.0,B1
+promo-gen-60,Só Hoje: Açúcar Especial 500 g,Desconto fixo de R$ 5.00 no produto Açúcar Especial 500 g.,7891000100000,fixed,5.0,
+promo-gen-61,Só Hoje: Água Mineral Especial 2 L,Ganhe 25% de desconto em Água Mineral Especial 2 L!,7891000100026,percentage,25.0,D1
 promo-gen-62,Salsicha Econômico 500 g,Desconto fixo de R$ 20.00 no produto Salsicha Econômico 500 g.,7891000100029,fixed,20.0,C2
 promo-gen-63,Sabão em Pó Especial 1 unidade,Desconto fixo de R$ 5.00 no produto Sabão em Pó Especial 1 unidade.,7891000100149,fixed,5.0,
 promo-gen-64,Clube de Descontos: Shampoo Clássico 2 L,Desconto fixo de R$ 20.00 no produto Shampoo Clássico 2 L.,7891000100006,fixed,20.0,D2
 promo-gen-65,Tomate Artesanal 2 kg,Ganhe 50% de desconto em Tomate Artesanal 2 kg!,7891000100012,percentage,50.0,
-promo-gen-66,Clube de Descontos: Tomate Artesanal 1 kg,Ganhe 30% de desconto em Tomate Artesanal 1 kg!,7891000100042,percentage,30.0,
-promo-gen-67,Liquidação Total: Creme Dental Seleção 1 unidade,Desconto fixo de R$ 1.00 no produto Creme Dental Seleção 1 unidade.,7891000100095,fixed,1.0,D2
+promo-gen-66,Clube de Descontos: Tomate Artesanal 1 kg,Ganhe 30% de desconto em Tomate Artesanal 1 kg!,7891000100012,percentage,30.0,
+promo-gen-67,Liquidação Total: Creme Dental Seleção 1 unidade,Desconto fixo de R$ 1.00 no produto Creme Dental Seleção 1 unidade.,7891000100072,fixed,1.0,D2
 promo-gen-68,Desconto do Dia: Macarrão Tradicional 1 kg,Desconto fixo de R$ 2.00 no produto Macarrão Tradicional 1 kg.,7891000100039,fixed,2.0,
 promo-gen-69,Oferta Relâmpago: Cerveja Econômico 2 L,Ganhe 40% de desconto em Cerveja Econômico 2 L!,7891000100065,percentage,40.0,D1
-promo-gen-70,Clube de Descontos: Manteiga Artesanal 1 kg,Ganhe 5% de desconto em Manteiga Artesanal 1 kg!,7891000100128,percentage,5.0,
+promo-gen-70,Clube de Descontos: Manteiga Artesanal 1 kg,Ganhe 5% de desconto em Manteiga Artesanal 1 kg!,7891000100044,percentage,5.0,
 promo-gen-71,Amaciante Natural 2 L,Ganhe 50% de desconto em Amaciante Natural 2 L!,7891000100015,percentage,50.0,D1
 promo-gen-72,Liquidação Total: Cebola Tradicional 2 kg,Desconto fixo de R$ 15.00 no produto Cebola Tradicional 2 kg.,7891000100086,fixed,15.0,A2
 promo-gen-73,Especial de Final de Semana: Manteiga Especial 2 kg,Ganhe 10% de desconto em Manteiga Especial 2 kg!,7891000100021,percentage,10.0,
@@ -76,26 +76,26 @@ promo-gen-74,Imperdível: Suco de Laranja Seleção 2 L,Ganhe 20% de desconto em
 promo-gen-75,Preço Baixo: Fio Dental Clássico 500 g,Ganhe 15% de desconto em Fio Dental Clássico 500 g!,7891000100002,percentage,15.0,D1
 promo-gen-76,Promoção de Verão: Presunto Natural 1 kg,Ganhe 40% de desconto em Presunto Natural 1 kg!,7891000100008,percentage,40.0,A1
 promo-gen-77,Clube de Descontos: Água Mineral Especial 500 mL,Ganhe 30% de desconto em Água Mineral Especial 500 mL!,7891000100026,percentage,30.0,C2
-promo-gen-78,Desconto do Dia: Óleo Tradicional 500 mL,Ganhe 20% de desconto em Óleo Tradicional 500 mL!,7891000100141,percentage,20.0,B1
-promo-gen-79,Mega Oferta: Esponja de Aço Econômico 1 kg,Desconto fixo de R$ 15.00 no produto Esponja de Aço Econômico 1 kg.,7891000100147,fixed,15.0,E1
-promo-gen-80,Farinha Econômico 1 kg,Desconto fixo de R$ 5.00 no produto Farinha Econômico 1 kg.,7891000100148,fixed,5.0,F1
-promo-gen-81,Clube de Descontos: Esponja de Aço Seleção 2 kg,Ganhe 40% de desconto em Esponja de Aço Seleção 2 kg!,7891000100045,percentage,40.0,
+promo-gen-78,Desconto do Dia: Óleo Tradicional 500 mL,Ganhe 20% de desconto em Óleo Tradicional 500 mL!,7891000100033,percentage,20.0,B1
+promo-gen-79,Mega Oferta: Esponja de Aço Econômico 1 kg,Desconto fixo de R$ 15.00 no produto Esponja de Aço Econômico 1 kg.,7891000100025,fixed,15.0,E1
+promo-gen-80,Farinha Econômico 1 kg,Desconto fixo de R$ 5.00 no produto Farinha Econômico 1 kg.,7891000100037,fixed,5.0,F1
+promo-gen-81,Clube de Descontos: Esponja de Aço Seleção 2 kg,Ganhe 40% de desconto em Esponja de Aço Seleção 2 kg!,7891000100025,percentage,40.0,
 promo-gen-82,Preço Baixo: Frango Inteiro Seleção 500 g,Ganhe 25% de desconto em Frango Inteiro Seleção 500 g!,7891000100001,percentage,25.0,E2
 promo-gen-83,Preço Baixo: Batata Natural 1 kg,Desconto fixo de R$ 10.00 no produto Batata Natural 1 kg.,7891000100016,fixed,10.0,E1
-promo-gen-84,Queijo Mussarela Seleção 1 kg,Ganhe 50% de desconto em Queijo Mussarela Seleção 1 kg!,7891000100079,percentage,50.0,F2
+promo-gen-84,Queijo Mussarela Seleção 1 kg,Ganhe 50% de desconto em Queijo Mussarela Seleção 1 kg!,7891000100055,percentage,50.0,F2
 promo-gen-85,Clube de Descontos: Queijo Mussarela Seleção 1 kg,Ganhe 50% de desconto em Queijo Mussarela Seleção 1 kg!,7891000100055,percentage,50.0,A2
 promo-gen-86,Promoção de Verão: Maçã Tradicional 1 kg,Ganhe 50% de desconto em Maçã Tradicional 1 kg!,7891000100102,percentage,50.0,C2
-promo-gen-87,Oferta Relâmpago: Linguiça Especial 1 kg,Desconto fixo de R$ 15.00 no produto Linguiça Especial 1 kg.,7891000100098,fixed,15.0,F1
+promo-gen-87,Oferta Relâmpago: Linguiça Especial 1 kg,Desconto fixo de R$ 15.00 no produto Linguiça Especial 1 kg.,7891000100018,fixed,15.0,F1
 promo-gen-88,Desconto do Dia: Linguiça Clássico 500 g,Ganhe 15% de desconto em Linguiça Clássico 500 g!,7891000100018,percentage,15.0,
 promo-gen-89,Água Sanitária Natural 500 mL,Desconto fixo de R$ 10.00 no produto Água Sanitária Natural 500 mL.,7891000100062,fixed,10.0,
 promo-gen-90,Arroz Seleção 2 kg,Desconto fixo de R$ 2.00 no produto Arroz Seleção 2 kg.,7891000100116,fixed,2.0,
 promo-gen-91,Especial de Final de Semana: Desinfetante Tradicional 1 L,Desconto fixo de R$ 2.00 no produto Desinfetante Tradicional 1 L.,7891000100035,fixed,2.0,F1
 promo-gen-92,Promoção de Verão: Leite Clássico 1 L,Desconto fixo de R$ 20.00 no produto Leite Clássico 1 L.,7891000100119,fixed,20.0,A1
 promo-gen-93,Imperdível: Batata Natural 1 kg,Ganhe 10% de desconto em Batata Natural 1 kg!,7891000100135,percentage,10.0,
-promo-gen-94,Especial de Final de Semana: Requeijão Clássico 500 mL,Ganhe 15% de desconto em Requeijão Clássico 500 mL!,7891000100106,percentage,15.0,F1
-promo-gen-95,Só Hoje: Água Sanitária Artesanal 2 L,Ganhe 40% de desconto em Água Sanitária Artesanal 2 L!,7891000100113,percentage,40.0,
+promo-gen-94,Especial de Final de Semana: Requeijão Clássico 500 mL,Ganhe 15% de desconto em Requeijão Clássico 500 mL!,7891000100091,percentage,15.0,F1
+promo-gen-95,Só Hoje: Água Sanitária Artesanal 2 L,Ganhe 40% de desconto em Água Sanitária Artesanal 2 L!,7891000100109,percentage,40.0,
 promo-gen-96,Creme de Leite Clássico 1 L,Desconto fixo de R$ 15.00 no produto Creme de Leite Clássico 1 L.,7891000100047,fixed,15.0,C1
 promo-gen-97,Café Tradicional 1 L,Desconto fixo de R$ 1.00 no produto Café Tradicional 1 L.,7891000100082,fixed,1.0,C1
-promo-gen-98,Oferta Relâmpago: Desinfetante Clássico 1 L,Ganhe 20% de desconto em Desinfetante Clássico 1 L!,7891000100110,percentage,20.0,D2
+promo-gen-98,Oferta Relâmpago: Desinfetante Clássico 1 L,Ganhe 20% de desconto em Desinfetante Clássico 1 L!,7891000100035,percentage,20.0,D2
 promo-gen-99,Especial de Final de Semana: Papel Higiênico Seleção 2 kg,Ganhe 30% de desconto em Papel Higiênico Seleção 2 kg!,7891000100056,percentage,30.0,B2
-promo-gen-100,Frango Inteiro Seleção 2 kg,Desconto fixo de R$ 5.00 no produto Frango Inteiro Seleção 2 kg.,7891000100129,fixed,5.0,F2
+promo-gen-100,Frango Inteiro Seleção 2 kg,Desconto fixo de R$ 5.00 no produto Frango Inteiro Seleção 2 kg.,7891000100001,fixed,5.0,F2

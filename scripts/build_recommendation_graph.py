@@ -42,9 +42,8 @@ def main():
     )
 
     print("")
-    print("  Nos: %d" % graph["meta"]["node_count"])
-    print("  Arestas: %d" % graph["meta"]["edge_count"])
-    print("  Transacoes: %d" % graph["meta"]["total_transactions"])
+    print("  Nos: %d" % len(graph.get("nodes", [])))
+    print("  Arestas: %d" % len(graph.get("links", [])))
     print("  Salvo em: %s" % graph["meta"].get("cache_path", "?"))
 
     if graph["links"]:

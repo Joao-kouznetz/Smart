@@ -19,7 +19,11 @@ def _extract_collection(payload: Any) -> list[dict[str, Any]]:
 
 def _normalize_promotion(payload: dict[str, Any]) -> PromotionResponse:
     discount_value = payload.get("discount_value")
-
+    
+    # Busca o nome do produto caso possua product_barcode
+    # Como nao temos o nome diretamente na payload da promocao, podemos precisar ajustar
+    # mas por enquanto vamos manter o titulo e vamos injetar o nome no servico que chama.
+    # Porem, aqui so temos o barcode. Vamos fazer isso no cart_service ou direto aqui se buscar o produto.
     return PromotionResponse(
         id=str(payload["id"]),
         title=str(payload["title"]),

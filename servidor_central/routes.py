@@ -43,7 +43,7 @@ def health_check() -> HealthResponse:
 
 
 @router.get("/products/search", response_model=list[ProductResponse])
-def search_products(query: str = Query(..., min_length=1)) -> list[ProductResponse]:
+def search_products(query: str = Query("")) -> list[ProductResponse]:
     try:
         return catalog_service.search_products(query)
     except (SupermarketAPIConfigError, SupermarketAPIError) as exc:
@@ -105,7 +105,13 @@ def delete_cart_item(cart_id: str, item_id: int) -> CartResponse:
 @router.get("/promotions", response_model=list[PromotionResponse])
 def get_promotions() -> list[PromotionResponse]:
     try:
-        return promotion_service.get_promotions()
+        promos = promotion_service.get_promotions()
+        products = catalog_service.search_products("")
+        pmap = {p.barcode: p for p in products}
+        for promo in promos:
+            if promo.product_barcode and promo.product_barcode in pmap:
+                promo.title = f"{pmap[promo.product_barcode].name} com promocao"
+        return promos
     except (SupermarketAPIConfigError, SupermarketAPIError) as exc:
         _raise_external_service_error(exc)
 

@@ -22,7 +22,6 @@ barcode,name,price,category,aisle
 7891000100020,Pão de Forma,92.34,Padaria,F1
 7891000100021,Manteiga salgada,2.64,Laticínios,D2
 7891000100022,Manteiga sem sal,8.46,Laticínios,A1
-7891000100023,Presunto,20.45,Carnes,F2
 7891000100024,Desodorante,14.57,Higiene,D2
 7891000100025,Esponja de Aço,40.8,Limpeza,C1
 7891000100026,Água Mineral,3.5,Bebidas,C2
@@ -30,122 +29,46 @@ barcode,name,price,category,aisle
 7891000100028,Leite Condensado,77.08,Laticínios,C2
 7891000100029,Salsicha,59.16,Carnes,C2
 7891000100030,Cenoura Organica,32.04,Hortifruti,B2
-7891000100031,Pão Francês,48.29,Padaria,D2
-7891000100032,Salsicha,75.77,Carnes,D1
 7891000100033,Óleo,5.5,Mercearia,F2
-7891000100034,Shampoo,33.68,Higiene,E1
 7891000100035,Desinfetante,36.34,Limpeza,F1
-7891000100036,Leite Condensado,88.66,Laticínios,D1
 7891000100037,Farinha,43.11,Mercearia,B1
 7891000100038,Batata frita congelada,80.31,Hortifruti,E1
 7891000100039,Macarrão,34.47,Mercearia,B1
-7891000100040,Amaciante,17.61,Limpeza,F2
 7891000100041,Vinho Tinto,17.69,Bebidas,E1
-7891000100042,Tomate,13.89,Hortifruti,E1
 7891000100043,Biscoito Recheado,58.03,Padaria,A1
 7891000100044,Manteiga ,76.64,Laticínios,E1
-7891000100045,Esponja de Aço,51.26,Limpeza,B1
-7891000100046,Sabão em Pó ,34.14,Limpeza,C1
 7891000100047,Creme de Leite,51.66,Laticínios,C1
 7891000100048,Sabonete ,74.51,Higiene,C2
-7891000100049,Sabão em Pó,14.08,Limpeza,D2
 7891000100050,Feijão,87.83,Mercearia,F2
 7891000100051,Acém,7.96,Carnes,D1
-7891000100052,Açúcar ,46.58,Mercearia,E1
 7891000100053,Suco de Laranja,34.66,Bebidas,A1
-7891000100054,Feijão,81.04,Mercearia,A2
 7891000100055,Queijo Mussarela,32.81,Laticínios,A2
 7891000100056,Papel Higiênico,18.74,Higiene,B2
-7891000100057,Frango Inteiro ,70.49,Carnes,F1
 7891000100058,Torrada,70.51,Padaria,A2
-7891000100059,Vinho Tinto,88.08,Bebidas,A2
-7891000100060,Pão de Forma,48.03,Padaria,E1
-7891000100061,Amaciante,65.68,Limpeza,C2
 7891000100062,Água Sanitária Natural,63.38,Limpeza,B2
-7891000100063,Shampoo,2.91,Higiene,D1
-7891000100064,Pão Francês,86.55,Padaria,F1
 7891000100065,Cerveja,7.99,Bebidas,D1
-7891000100066,Shampoo,5.81,Higiene,A2
 7891000100067,Fio Dental Natural,83.35,Higiene,F1
-7891000100068,Biscoito Recheado,9.75,Padaria,E1
 7891000100069,Refrigerante Cola ,37.1,Bebidas,D1
-7891000100070,Torrada ,79.47,Padaria,F2
-7891000100071,Biscoito Recheado,66.36,Padaria,F1
 7891000100072,Creme Dental,74.21,Higiene,B2
 7891000100073,Shampoo Natural,40.36,Higiene,E1
 7891000100074,Torrada Natural,67.99,Padaria,E1
 7891000100075,Azeite,40.02,Mercearia,A1
-7891000100076,Acém,73.35,Carnes,B1
-7891000100077,Esponja de Aço,75.71,Limpeza,B1
-7891000100078,Biscoito Recheado,28.27,Padaria,E2
-7891000100079,Queijo Mussarela,65.02,Laticínios,F2
-7891000100080,Desinfetante,20.02,Limpeza,A1
-7891000100081,Acém,35.11,Carnes,A2
 7891000100082,Café,71.13,Bebidas,C1
-7891000100083,Picanha,62.1,Carnes,A2
 7891000100084,Chá Gelado,66.99,Bebidas,C1
-7891000100085,Salsicha ,13.2,Carnes,A2
 7891000100086,Cebola,94.64,Hortifruti,A2
-7891000100087,Manteiga,74.72,Laticínios,F2
-7891000100088,Picanha ,75.53,Carnes,D1
-7891000100089,Acém,6.73,Carnes,D1
-7891000100090,Açúcar,44.59,Mercearia,C2
 7891000100091,Requeijão,42.74,Laticínios,E2
-7891000100092,Desodorante,6.22,Higiene,F1
 7891000100093,Alface,74.87,Hortifruti,E1
-7891000100094,Requeijão,75.11,Laticínios,C2
-7891000100095,Creme Dental,87.45,Higiene,D2
-7891000100096,Detergente,84.38,Limpeza,C1
-7891000100097,Amaciante ,36.61,Limpeza,D2
-7891000100098,Linguiça ,35.86,Carnes,F1
 7891000100099,Farinha Natural,41.83,Mercearia,B2
-7891000100100,Leite Condensado,4.63,Laticínios,F2
-7891000100101,Leite Condensado,36.5,Laticínios,A1
 7891000100102,Maçã,66.53,Hortifruti,C2
-7891000100103,Requeijão,42.39,Laticínios,F2
 7891000100104,Bolo de Cenoura ,26.6,Padaria,E1
-7891000100105,Biscoito Recheado,50.99,Padaria,C2
-7891000100106,Requeijão,52.59,Laticínios,F1
-7891000100107,Sabão em Pó,11.87,Limpeza,F2
-7891000100108,Biscoito Recheado,92.75,Padaria,C1
 7891000100109,Água Sanitária,7.42,Limpeza,B2
-7891000100110,Desinfetante,44.49,Limpeza,D2
-7891000100111,Salsicha,75.56,Carnes,C2
-7891000100112,Shampoo,91.1,Higiene,C2
-7891000100113,Água Sanitária,21.91,Limpeza,D2
-7891000100114,Shampoo ,82.79,Higiene,C1
-7891000100115,Tomate,17.74,Hortifruti,C1
 7891000100116,Arroz,11.17,Mercearia,C2
-7891000100117,Tomate ,13.11,Hortifruti,E1
-7891000100118,Frango Inteiro,48.57,Carnes,F1
 7891000100119,Leite,57.33,Laticínios,A1
-7891000100120,Esponja de Aço,63.89,Limpeza,E2
-7891000100121,Desinfetante,22.66,Limpeza,B2
-7891000100122,Amaciante,31.41,Limpeza,B2
-7891000100123,Requeijão,33.98,Laticínios,F1
-7891000100124,Feijão,71.92,Mercearia,F1
-7891000100125,Água Mineral ,62.67,Bebidas,D1
-7891000100126,Creme de Leite,75.46,Laticínios,C2
 7891000100127,Biscoito Recheado Natural,89.02,Padaria,C2
-7891000100128,Manteiga,93.47,Laticínios,B1
-7891000100129,Frango Inteiro,27.37,Carnes,F2
-7891000100130,Salsicha,79.73,Carnes,D2
-7891000100131,Queijo Mussarela,56.01,Laticínios,B1
-7891000100132,Pão Francês,68.05,Padaria,C1
-7891000100133,Batata,11.42,Hortifruti,B2
 7891000100134,Iogurte Natural,5.91,Laticínios,E1
 7891000100135,Batata Natural,94.85,Hortifruti,E2
-7891000100136,Sabão em Pó,55.05,Limpeza,C2
-7891000100137,Sabonete,4.03,Higiene,F1
-7891000100138,Bolo de Cenoura,92.59,Padaria,F2
 7891000100139,Açúcar Especial,23.16,Mercearia,D2
 7891000100140,Picanha Especial,34.56,Carnes,A1
-7891000100141,Óleo,40.92,Mercearia,B1
-7891000100142,Alface,94.57,Hortifruti,B2
-7891000100143,Batata,14.65,Hortifruti,B1
-7891000100144,Salsicha,32.73,Carnes,B1
 7891000100145,Desinfetante Natural,41.66,Limpeza,A2
 7891000100146,Iogurte Natural Natural,81.71,Laticínios,B1
-7891000100147,Esponja de Aço,85.38,Limpeza,E1
-7891000100148,Farinha,50.67,Mercearia,F1
 7891000100149,Sabão em Pó Especial,33.83,Limpeza,D1

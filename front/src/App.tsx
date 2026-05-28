@@ -331,7 +331,6 @@ function App() {
                   [
                     ...storePromotions,
                     ...(locationPromotions?.promotions ?? []),
-                    ...(recommendedPromotions?.recommendations ?? []),
                   ].map((p) => [p.id, p])
                 ).values()
               )}

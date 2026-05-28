@@ -20,7 +20,7 @@ def create_app() -> FastAPI:
         return {"status": "ok"}
 
     @app.get("/products/search")
-    def search_products(query: str = Query(..., min_length=1)) -> list[dict[str, str | float]]:
+    def search_products(query: str = Query("")) -> list[dict[str, str | float]]:
         return search_products_in_catalog(query)
 
     @app.get("/products/{barcode}")
